@@ -9,5 +9,4 @@ repositories {
 
 dependencies {
     implementation("org.soot-oss:soot:4.4.1")
-    implementation("com.github.javaparser:javaparser-symbol-solver-core:3.25.8")
 }

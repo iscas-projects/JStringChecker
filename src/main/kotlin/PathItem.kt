@@ -13,13 +13,13 @@ class Statement(val stmt: Stmt, private val debugInfo: String = ""): PathItem {
 sealed interface Condition: PathItem {
     fun getValues(): List<Value>
 }
-class Single(val cond: Value, private val debugInfo: String = ""): Condition {
+class Single(val value: Value, private val debugInfo: String = ""): Condition {
     override fun toString(): String {
-        return "Cond: $cond $debugInfo"
+        return "Cond: $value $debugInfo"
     }
 
     override fun getValues(): List<Value> {
-        return listOf(cond)
+        return listOf(value)
     }
 }
 
