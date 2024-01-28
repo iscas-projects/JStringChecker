@@ -44,11 +44,6 @@ fun <T> Set<List<T>>.updateByEachIndependentInsertion(
     }
 }
 
-fun <T> Set<List<T>>.getAllVariablesShownInChains(): Set<T> {
-    return this.flatten()
-        .toSet()
-}
-
 // used to unfold the program loop for `times`
 fun <T> Set<List<T>>.getItemsAppearingInEachPathsNoMoreThan(items: Set<T>, times: Int): List<T> {
     return items.filter { item ->
@@ -72,10 +67,6 @@ fun constructPath(cfg: BlockGraph): Set<List<Block>> {
     return finalPaths
 }
 
-fun <T> Set<List<T>>.filterOutNotContainAny(items: Collection<T>): Set<List<T>> {
-    return this.filter { path: List<T> -> path.any { items.contains(it) } }.toSet()
-}
-
 class Slicer(val programPath: List<Block>) {
     private val stmts = programPath.asReversed().map { it.toList() }.flatten()
     private var constraintChain: List<Condition>? = null
@@ -89,23 +80,6 @@ class Slicer(val programPath: List<Block>) {
                     }
         }.flatMap { it.defBoxes }
             .map { it.value }
-    }
-
-    fun getStringRelatedSlice(): List<Unit> { //TODO: some refactor as this may have an idiom in kotlin
-        var concernedVars = getStringRelatedVars().toSet()
-        var updatedVars: Set<Value> = emptySet()
-        val valueEquivGroups = stmts.map { getParameterAndReceiver(it as Stmt) }
-        while (concernedVars != updatedVars) {
-            concernedVars = concernedVars.union(updatedVars)
-            updatedVars =
-                concernedVars.flatMap { variable -> valueEquivGroups.filter { group -> group.contains(variable) } }
-                    .flatten()
-                    .toSet()
-        }
-        return stmts.zip(valueEquivGroups)
-            .filter { (_, group) ->
-                group.intersect(concernedVars).isNotEmpty()
-            }.map { it.first }
     }
 
     fun getPathConstraints(): List<Condition> {
@@ -190,24 +164,6 @@ class Slicer(val programPath: List<Block>) {
 
     fun getStatistics() = "involved APIs: ${getApiTypes().entries.joinToString("\n")}\n" +
             "API chains: ${getApiChains().joinToString("\n")}\n"
-}
-
-fun getParameterAndReceiver(stmt: Stmt): List<Value> {
-    val result: MutableList<Value> = mutableListOf()
-    if (stmt is JAssignStmt)
-        result.add(stmt.leftOpBox.value)
-    if (stmt.containsInvokeExpr())
-        result.addAll(stmt.invokeExpr.args)
-    return result
-}
-
-fun hasStringOps(bl: Block): Boolean {
-    return bl.any { unit ->
-        (unit as Stmt).containsInvokeExpr() &&
-                unit.invokeExpr.method.let { it.name.contains("toString") || it.signature.contains("java.lang.String") }
-    }
-//        if (u.getUseAndDefBoxes().stream().anyMatch { box: ValueBox ->
-//                box.value.type.toString().contains("String")
 }
 
 fun main() { // test use

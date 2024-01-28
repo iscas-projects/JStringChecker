@@ -23,7 +23,7 @@ fun plainReportTransformer(slicer: Slicer) = slicer.getStatistics() + "\n\n" +
 fun conditionExpander(condition: Condition): String = when (condition) {
     is Intersect -> "(${conditionExpander(condition.leftCond)} && ${conditionExpander(condition.rightCond)})"
     is Negate -> "!(${conditionExpander(condition.cond)})"
-    is Nop -> "()"
+    is Nop -> ""
     is Single -> "(${condition.value})"
     is Union -> "(${conditionExpander(condition.leftCond)} || ${conditionExpander(condition.rightCond)})"
 }
@@ -31,7 +31,7 @@ fun compatibleCpathTransformer(slicer: Slicer) = slicer.getPath().joinToString("
     when (pathItem) {
         is Intersect -> "@${conditionExpander(pathItem)};"
         is Negate -> "@${conditionExpander(pathItem)};"
-        is Nop -> "@${conditionExpander(pathItem)};"
+        is Nop -> ""
         is Single -> "@${conditionExpander(pathItem)};"
         is Union -> "@${conditionExpander(pathItem)};"
         is Statement -> transformSingleStmtToCppCompat(pathItem.stmt)
