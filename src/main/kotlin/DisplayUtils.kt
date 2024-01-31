@@ -1,9 +1,4 @@
-import soot.ArrayType
-import soot.PrimType
-import soot.SootClass
-import soot.SootField
-import soot.Type
-import soot.Value
+import soot.*
 import soot.grimp.internal.GNewInvokeExpr
 import soot.jimple.*
 import soot.jimple.internal.JIdentityStmt
@@ -13,19 +8,27 @@ import soot.jimple.internal.JReturnVoidStmt
 import soot.jimple.internal.JStaticInvokeExpr
 import java.io.File
 
+val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
 
 fun transformTypeToCppCompatWithStructPrefix(ty: Type): String {
     return if ("$ty" in listOf("int", "char", "boolean") ||
         ((ty is ArrayType && "${ty.baseType}" in listOf("int", "char", "boolean")))) "$ty"
-    else "struct $ty *".replace('.', '_')
+    else if (ty is ArrayType && ty.baseType is RefType) {
+        structFields[(ty.baseType as RefType).sootClass] = mutableListOf()
+        "struct $ty *".replace('.', '_')
+    }
+    else if (ty is RefType) {
+        structFields[ty.sootClass] = mutableListOf()
+        "struct $ty *".replace('.', '_')
+    } else {
+        "struct $ty *".replace('.', '_')
+    }
 }
 
 /// only for type prefix in a function like "String_append"
 fun transformTypeToCppCompat(ty: Type): String {
     return "$ty".replace('.', '_')
 }
-
-val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
 
 fun transformValueToCppCompat(value: Value): String {
     return when (value) {
