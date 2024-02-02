@@ -6,7 +6,6 @@ import soot.jimple.internal.JInstanceFieldRef
 import soot.jimple.internal.JReturnStmt
 import soot.jimple.internal.JReturnVoidStmt
 import soot.jimple.internal.JStaticInvokeExpr
-import java.io.File
 
 val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
 
@@ -116,3 +115,44 @@ fun String.postProcess() = // trim the $, <, >, and other symbols
         .replace("<init>", "__init__")
         .replace("@();", "") // trim unnecessary conditions
 
+fun Slicer.smtExpand(): String {
+    val publicSymbols = mutableMapOf<String, Value>()
+    val reversePublicSymbols = mutableMapOf<Value, String>()
+    val privateSymbols = mutableListOf<String>()
+    fun grabRandomName(): String {
+        var name: String
+        do {
+            name = ("var" + Math.random())
+        } while (name in publicSymbols.keys || name in privateSymbols)
+        return name
+    }
+
+    fun transformValue(value: Value): String {
+        val sym = reversePublicSymbols[value]
+        if (sym == null) {
+            val name = grabRandomName()
+            publicSymbols[name] = value
+            reversePublicSymbols[value] = name
+            return name
+        } else { return sym }
+    }
+
+    fun conditionExpander(condition: Condition): String = when (condition) {
+        is Intersect -> "(and ${conditionExpander(condition.leftCond)} ${conditionExpander(condition.rightCond)})"
+        is Negate -> "(not ${conditionExpander(condition.cond)})"
+        is Nop -> "true"
+        is Single -> "${transformValue(condition.value)}"
+        is Union -> "(or ${conditionExpander(condition.leftCond)} ${conditionExpander(condition.rightCond)}"
+    }
+
+    val body = this.getPath().joinToString("\n") { entry ->
+        when (entry) {
+            is Condition -> "(assert ${conditionExpander(entry)})"
+            is Statement -> ""
+        }
+    }
+
+    val header = "(set-logic ALL)\n"
+    val trailer = "\n(check-sat)\n(get-model)\n"
+    return header + body + trailer
+}

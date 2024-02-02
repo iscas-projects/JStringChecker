@@ -11,33 +11,13 @@ fun main(args: Array<String>) {
         val dir = File("paths" + File.separator + "method-" + pathsOfFunc.key.replace("<", "《").replace(">", "》"))
         if (dir.isDirectory() || dir.mkdir()) {
             pathsOfFunc.value.forEachIndexed { index, slicer ->
-                File(dir, "$index.path").writeText(compatibleCpathTransformer(slicer))
+                File(dir, "$index.path").writeText(compatibleSmtlibTransformer(slicer))
             }
         }
     }
 }
 
-fun plainReportTransformer(slicer: Slicer) = slicer.getStatistics() + "\n\n" +
-        slicer.getPath().joinToString("\n")
-
-fun conditionExpander(condition: Condition): String = when (condition) {
-    is Intersect -> "(${conditionExpander(condition.leftCond)} && ${conditionExpander(condition.rightCond)})"
-    is Negate -> "!(${conditionExpander(condition.cond)})"
-    is Nop -> ""
-    is Single -> "(${condition.value})"
-    is Union -> "(${conditionExpander(condition.leftCond)} || ${conditionExpander(condition.rightCond)})"
-}
-fun compatibleCpathTransformer(slicer: Slicer) = slicer.getPath().joinToString("\n") { pathItem ->
-    when (pathItem) {
-        is Intersect -> "@${conditionExpander(pathItem)};"
-        is Negate -> "@${conditionExpander(pathItem)};"
-        is Nop -> ""
-        is Single -> "@${conditionExpander(pathItem)};"
-        is Union -> "@${conditionExpander(pathItem)};"
-        is Statement -> transformSingleStmtToCppCompat(pathItem.stmt)
-    }
-}
-    .postProcess()
+fun compatibleSmtlibTransformer(slicer: Slicer) = slicer.smtExpand()
 
 /// produce raw info of every method, which contains the program path, path conditions
 // and some statistics
