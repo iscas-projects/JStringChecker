@@ -141,7 +141,7 @@ fun Slicer.smtExpand(): String {
         is Intersect -> "(and ${conditionExpander(condition.leftCond)} ${conditionExpander(condition.rightCond)})"
         is Negate -> "(not ${conditionExpander(condition.cond)})"
         is Nop -> "true"
-        is Single -> "${transformValue(condition.value)}"
+        is Single -> transformValue(condition.value)
         is Union -> "(or ${conditionExpander(condition.leftCond)} ${conditionExpander(condition.rightCond)}"
     }
 
