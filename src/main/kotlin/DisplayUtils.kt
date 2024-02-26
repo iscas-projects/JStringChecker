@@ -6,6 +6,7 @@ import soot.jimple.internal.JInstanceFieldRef
 import soot.jimple.internal.JReturnStmt
 import soot.jimple.internal.JReturnVoidStmt
 import soot.jimple.internal.JStaticInvokeExpr
+import soot.util.Numberable
 import kotlin.math.floor
 
 val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
@@ -71,21 +72,6 @@ fun transformValueToCppCompat(value: Value): String {
 
 }
 
-fun transformSingleStmtToCppCompat(stmt: Stmt): String {
-    return when (stmt) {
-        is JIdentityStmt -> transformTypeToCppCompatWithStructPrefix(stmt.rightOp.type) /* ThisRef / ParameterRef */ + " " + stmt.leftOp + ";"
-        is AssignStmt -> formatFieldOrArrayDeclToCppCompat(transformValueToCppCompat(stmt.leftOp), stmt.leftOp.type) +
-                     " = " + transformValueToCppCompat(stmt.rightOp) + "; // $stmt"
-        is IfStmt -> ""
-        is GotoStmt -> ""
-        is ThrowStmt -> "exit(); // $stmt"
-        is JReturnStmt -> "$stmt;"
-        is JReturnVoidStmt -> "return;"
-        is InvokeStmt -> "${transformValueToCppCompat(stmt.invokeExpr)}; // $stmt"
-        else -> "$stmt // $stmt"
-    }
-}
-
 private fun formatFieldOrArrayDeclToCppCompat(name: String, ty: Type) = (if (ty is FieldRef) transformValueToCppCompat(ty)
 else if (ty is ArrayType)
     transformTypeToCppCompatWithStructPrefix(ty).let {
@@ -117,12 +103,14 @@ fun String.postProcess() = // trim the $, <, >, and other symbols
         .replace("@();", "") // trim unnecessary conditions
 
 fun Slicer.smtExpand(): String {
-    // the symbol that are defined and referred in the bytecode
-    val publicSymbols = mutableMapOf<String, Value>()
+    // the symbol that are defined and referred in the bytecode, should change to SSA form
+    val publicSymbols = mutableMapOf<String, Any>()
     // search according to the value its corresponding public symbol
-    val reversePublicSymbols = mutableMapOf<Value, String>()
+    val reversePublicSymbols = mutableMapOf<Any, String>()
     // affiliate variables (in inner scope, for example)
     val privateSymbols = mutableListOf<String>()
+    // functions
+    val functions = mutableMapOf<String, Pair<List<Any>, Any>>()
     fun grabRandomName(): String {
         var name: String
         do {
@@ -131,21 +119,88 @@ fun Slicer.smtExpand(): String {
         return name
     }
 
-    fun transformName(varName: Local): String {
-        val sym = reversePublicSymbols[varName]
+    fun transformName(varName: Any): String {
+        when (varName) {
+            IntType.v() -> return "Int"
+            BooleanType.v() -> return "Bool"
+        }
+        val derefName = if (varName is RefType) varName.sootClass else varName
+        val sym = reversePublicSymbols[derefName]
         if (sym == null) {
             val name = grabRandomName()
-            publicSymbols[name] = varName
-            reversePublicSymbols[varName] = name
+            publicSymbols[name] = derefName
+            reversePublicSymbols[derefName] = name
             return name
-        } else { return sym }
+        } else {
+            return sym
+        }
     }
 
-    fun transformValue(value: Value) = ""
+    fun transformValue(value: Value): String = when (value) {
+        is NewExpr -> "${transformTypeToCppCompatWithStructPrefix(value.baseType)}{}"
+        is JInstanceFieldRef -> {
+//            val className = transformTypeToCppCompatWithStructPrefix(value.type)
+            val className = value.field.declaringClass
+            val fieldName = value.field.name
+            functions.putIfAbsent(fieldName, listOf(className) to value.field.type)
+            "($fieldName ${transformName(value.base)})"
+        }
+
+        is StaticFieldRef -> "${value.fieldRef.declaringClass().toString().replace('.', '_')}_${value.fieldRef.name()}"
+        is VirtualInvokeExpr -> {
+            functions.putIfAbsent(value.method.name, (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
+            "(${value.method.name} ${(listOf(value.base) + value.args).joinToString(", ") { transformValue(it) }})"
+        }
+
+        is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
+        is JStaticInvokeExpr -> "${transformTypeToCppCompat(value.method.declaringClass.type)}_${value.method.name}(${
+            (value.args).joinToString(
+                ", "
+            )
+        })"
+
+        is SpecialInvokeExpr -> "${transformValueToCppCompat(value.base)}_${value.method.name}(${
+            (value.args).joinToString(
+                ", "
+            )
+        })"
+
+        is DynamicInvokeExpr -> "${value.method.name}(${
+            (value.bootstrapArgs).joinToString(", ") { transformValueToCppCompat(it) }
+        }, __FENCE__, ${
+            value.args.joinToString(
+                ", "
+            ) { transformValueToCppCompat(it) }
+        })"
+
+        is InterfaceInvokeExpr -> "${
+            transformTypeToCppCompat(value.method.declaringClass.type)
+        }_${
+            value.method.name
+        }(${
+            (listOf(value.base) + value.args).joinToString(", ") { transformValueToCppCompat(it) }
+        })"
+
+        is ClassConstant -> transformTypeToCppCompatWithStructPrefix(value.toSootType())
+        is StringConstant -> value.toString()
+        is NegExpr -> "-(${transformValueToCppCompat(value.op)})"
+        is BinopExpr -> when (value.symbol) {
+            " != " -> "(not (= ${transformValue(value.op1)} ${transformValue(value.op2)}))"
+            " = " -> "(= ${transformValue(value.op1)} ${transformValue(value.op2)})"
+            else -> "(${value.symbol} ${transformValue(value.op1)} ${transformValue(value.op2)})"
+        }
+
+        is Local -> transformName(value)
+        is CastExpr -> transformValue(value.op)
+        else -> value.toString()
+    }
 
     fun transformInvoke(invoke: InvokeExpr) = ""
 
-    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = ""
+    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = if (rvalue == null)
+        "(declare-const ${transformName(lvalue)} ${transformName(ty)})"
+    else
+        "(define-const ${transformName(lvalue)} ${transformName(ty)} ${transformValue(rvalue)})"
 
     fun transformStmt(stmt: Stmt) = when (stmt) {
         is JIdentityStmt -> transformDefine(stmt.rightOp.type, stmt.leftOp)
@@ -174,7 +229,15 @@ fun Slicer.smtExpand(): String {
         }
     }
 
-    val header = "(set-logic ALL)\n"
-    val trailer = "\n(check-sat)\n(get-model)\n"
+    val header = "(set-logic ALL)\n" + publicSymbols.values.filter { it is Type || it is SootClass }
+        .joinToString("") { "(declare-sort ${reversePublicSymbols[it]})\n" } +
+            functions.map { (name, types) ->
+                "(declare-fun $name (${types.first.joinToString { transformName(it) }}) ${
+                    transformName(
+                        types.second
+                    )
+                })\n"
+            }.joinToString("")
+    val trailer = "\n(check-sat)\n(get-model)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return header + body + trailer
 }

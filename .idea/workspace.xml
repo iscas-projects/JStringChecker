@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="delete no-use funcs for this project">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add support for some java bytecode transform, to be continued">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
@@ -60,11 +60,17 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="java-parser" />
+        <entry key="$PROJECT_DIR$" value="soot-parse-text" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GitHubPullRequestSearchHistory"><![CDATA[{}]]></component>
+  <component name="GitHubPullRequestState"><![CDATA[{
+  "prStates": []
+}]]></component>
+  <component name="GitLabMergeRequestsSettings"><![CDATA[{}]]></component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{}]]></component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8
 }</component>
@@ -74,25 +80,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Gradle.Build test_native_build.executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.test_native_build [linkNative].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.test_native_build [nativeBinaries].executor&quot;: &quot;Run&quot;,
-    &quot;Gradle.构建 test_native_build.executor&quot;: &quot;Run&quot;,
-    &quot;Kotlin 脚本(测试版).build.gradle.kts.executor&quot;: &quot;Run&quot;,
-    &quot;Kotlin.MainKt (1).executor&quot;: &quot;Run&quot;,
-    &quot;Kotlin.MainKt.executor&quot;: &quot;Debug&quot;,
-    &quot;Kotlin.TestJavaParserKt.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;soot-parse-text&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/IdeaProjects/test_native_build&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;reference.settingsdialog.project.gradle&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.Build test_native_build.executor": "Run",
+    "Gradle.test_native_build [linkNative].executor": "Run",
+    "Gradle.test_native_build [nativeBinaries].executor": "Run",
+    "Gradle.构建 test_native_build.executor": "Run",
+    "Kotlin 脚本(测试版).build.gradle.kts.executor": "Run",
+    "Kotlin.MainKt (1).executor": "Run",
+    "Kotlin.MainKt.executor": "Run",
+    "Kotlin.TestJavaParserKt.executor": "Run",
+    "RunOnceActivity.OpenProjectViewOnStart": "true",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "soot-parse-smtlib",
+    "ignore.virus.scanning.warn.message": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/learning/jconcolic",
+    "settings.editor.selected.configurable": "preferences.keymap"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\IdeaProjects\test_native_build" />
@@ -167,10 +173,11 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Kotlin.TestJavaParserKt" />
         <item itemvalue="Kotlin.MainKt" />
+        <item itemvalue="Kotlin.TestJavaParserKt" />
         <item itemvalue="Gradle.test_native_build [nativeBinaries]" />
         <item itemvalue="Gradle.test_native_build [linkNative]" />
+        <item itemvalue="Kotlin.MainKt" />
       </list>
     </recent_temporary>
   </component>
@@ -222,7 +229,23 @@
       <option name="project" value="LOCAL" />
       <updated>1706413338543</updated>
     </task>
-    <option name="localTasksCounter" value="5" />
+    <task id="LOCAL-00005" summary="partially add smtlib things">
+      <option name="closed" value="true" />
+      <created>1708932389712</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1708932389712</updated>
+    </task>
+    <task id="LOCAL-00006" summary="add support for some java bytecode transform, to be continued">
+      <option name="closed" value="true" />
+      <created>1708940565155</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1708940565155</updated>
+    </task>
+    <option name="localTasksCounter" value="7" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -252,24 +275,23 @@
     <MESSAGE value="." />
     <MESSAGE value="some to-text updates" />
     <MESSAGE value="delete no-use funcs for this project" />
-    <option name="LAST_COMMIT_MESSAGE" value="delete no-use funcs for this project" />
+    <MESSAGE value="partially add smtlib things" />
+    <MESSAGE value="add support for some java bytecode transform, to be continued" />
+    <option name="LAST_COMMIT_MESSAGE" value="add support for some java bytecode transform, to be continued" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
         <line-breakpoint type="kotlin-line">
-          <condition expression="stmt.toString().contains(&quot;char[]&quot;)" language="kotlin" />
+          <condition expression="varName.toString().contains(&quot;CompositeBreakIterator&quot;)" language="kotlin" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>74</line>
-          <option name="timeStamp" value="10" />
+          <line>127</line>
+          <option name="timeStamp" value="20" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>107</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="19" />
+          <line>240</line>
+          <option name="timeStamp" value="21" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
