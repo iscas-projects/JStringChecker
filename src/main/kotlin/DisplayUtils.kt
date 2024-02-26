@@ -6,6 +6,7 @@ import soot.jimple.internal.JInstanceFieldRef
 import soot.jimple.internal.JReturnStmt
 import soot.jimple.internal.JReturnVoidStmt
 import soot.jimple.internal.JStaticInvokeExpr
+import kotlin.math.floor
 
 val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
 
@@ -116,25 +117,46 @@ fun String.postProcess() = // trim the $, <, >, and other symbols
         .replace("@();", "") // trim unnecessary conditions
 
 fun Slicer.smtExpand(): String {
+    // the symbol that are defined and referred in the bytecode
     val publicSymbols = mutableMapOf<String, Value>()
+    // search according to the value its corresponding public symbol
     val reversePublicSymbols = mutableMapOf<Value, String>()
+    // affiliate variables (in inner scope, for example)
     val privateSymbols = mutableListOf<String>()
     fun grabRandomName(): String {
         var name: String
         do {
-            name = ("var" + Math.random())
+            name = ("var" + floor(Math.random() * 4000.0).toInt())
         } while (name in publicSymbols.keys || name in privateSymbols)
         return name
     }
 
-    fun transformValue(value: Value): String {
-        val sym = reversePublicSymbols[value]
+    fun transformName(varName: Local): String {
+        val sym = reversePublicSymbols[varName]
         if (sym == null) {
             val name = grabRandomName()
-            publicSymbols[name] = value
-            reversePublicSymbols[value] = name
+            publicSymbols[name] = varName
+            reversePublicSymbols[varName] = name
             return name
         } else { return sym }
+    }
+
+    fun transformValue(value: Value) = ""
+
+    fun transformInvoke(invoke: InvokeExpr) = ""
+
+    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = ""
+
+    fun transformStmt(stmt: Stmt) = when (stmt) {
+        is JIdentityStmt -> transformDefine(stmt.rightOp.type, stmt.leftOp)
+        is AssignStmt -> transformDefine(stmt.leftOp.type, stmt.leftOp, stmt.rightOp)
+        is IfStmt -> ""
+        is GotoStmt -> ""
+        is ThrowStmt -> ""
+        is JReturnStmt -> ""
+        is JReturnVoidStmt -> ""
+        is InvokeStmt -> transformInvoke(stmt.invokeExpr)
+        else -> "!!!!!!"
     }
 
     fun conditionExpander(condition: Condition): String = when (condition) {
@@ -147,8 +169,8 @@ fun Slicer.smtExpand(): String {
 
     val body = this.getPath().joinToString("\n") { entry ->
         when (entry) {
-            is Condition -> "(assert ${conditionExpander(entry)})"
-            is Statement -> ""
+            is Condition -> "(assert ${conditionExpander(entry)}) ; $entry"
+            is Statement -> "${transformStmt(entry.stmt)} ; $entry"
         }
     }
 
