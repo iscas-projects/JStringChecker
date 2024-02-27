@@ -108,6 +108,8 @@ fun Slicer.smtExpand(): String {
     val reversePublicSymbols = mutableMapOf<Any, String>()
     // affiliate variables (in inner scope, for example)
     val privateSymbols = mutableListOf<String>()
+    // SSA transformation (the scope system is assumed to hold, otherwise a variable might be accessed out of scope)
+    val assignOnceSymbols = mutableMapOf<String, List<String>>()
     // functions
     val functions = mutableMapOf<String, Pair<List<Any>, Any>>()
     fun grabRandomName(): String {
@@ -134,19 +136,24 @@ fun Slicer.smtExpand(): String {
             reversePublicSymbols[derefName] = name
             return name
         } else {
-            return sym
+            return if (assignOnceSymbols.containsKey(sym))
+                assignOnceSymbols[sym]!![0]
+            else sym
         }
     }
 
-    fun transformDefinitionName(varName: Local): String {
+    fun transformDefinitionName(varName: Value): String {
         val sym = reversePublicSymbols[varName]
         if (sym == null) {
             val name = grabRandomName()
             publicSymbols[name] = varName
             reversePublicSymbols[varName] = name
+            assignOnceSymbols[name] = listOf(name)
             return name
         } else {
-            return sym
+            val newName = "${sym}_${assignOnceSymbols[sym]!!.size}"
+            assignOnceSymbols[sym] = listOf(newName) + assignOnceSymbols[sym]!!
+            return newName
         }
     }
 
@@ -267,14 +274,19 @@ fun Slicer.smtExpand(): String {
         else -> value.toString()// + value.javaClass
     }
 
-    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = if (rvalue == null)
-        "(declare-const ${transformName(lvalue)} ${transformName(ty)})"
+    // enforce the eval order
+    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = if (rvalue == null) {
+        val literal1 = transformName(ty)
+        "(declare-const ${transformDefinitionName(lvalue)} $literal1)"
+    }
     else {
+        val literal1 = transformName(ty)
+        val literal2 = transformValue(rvalue)
         // compromise to bytecode's assignment of integers to boolean type variables
         if (ty is BooleanType && rvalue.type is IntType)
-            "(define-const ${transformName(lvalue)} ${transformName(ty)} (ite (= 1 ${transformValue(rvalue)}) true false))"
+            "(define-const ${transformDefinitionName(lvalue)} $literal1 (ite (= 1 $literal2) true false))"
         else
-            "(define-const ${transformName(lvalue)} ${transformName(ty)} ${transformValue(rvalue)})"
+            "(define-const ${transformDefinitionName(lvalue)} $literal1 $literal2)"
     }
 
     fun transformStmt(stmt: Stmt) = when (stmt) {
