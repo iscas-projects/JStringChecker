@@ -43,7 +43,7 @@ fun slice(classPath: String): HashMap<String, List<Slicer>> {
 //            paths = paths.filterOutNotContainAny(blocksWithStringOps)
             val slicers = paths.map { Slicer(it) }
             if (b?.method?.name != null)
-                pathsOfFunc[b.method?.name!!] = slicers
+                pathsOfFunc["${b.method.declaringClass.name}__${b.method?.name!!}"] = slicers
         }
     }))
     PackManager.v().runPacks()

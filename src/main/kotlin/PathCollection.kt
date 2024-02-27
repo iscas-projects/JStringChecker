@@ -1,6 +1,5 @@
 import soot.*
 import soot.jimple.*
-import soot.jimple.internal.JAssignStmt
 import soot.options.Options
 import soot.toolkits.graph.Block
 import soot.toolkits.graph.BlockGraph
@@ -12,36 +11,6 @@ import java.util.*
 
 fun <T> listWrapper(items: Collection<T>): Set<List<T>> {
     return items.map { listOf(it) }.toSet()
-}
-
-fun <T> Set<List<T>>.updateThoseEndWith(
-    name: T,
-    isKeepOriginalPath: Boolean,
-    policy: (List<T>) -> List<List<T>>
-): Set<List<T>> {
-    val bipart: Pair<List<List<T>>, List<List<T>>> =
-        this.partition { it.isEmpty() || it[0] == name }
-    val updated: List<List<T>> = bipart.first.map { policy(it) }
-        .flatten()
-    //updated += bipart.second;
-    return (updated + if (!isKeepOriginalPath) bipart.second else this).toSet()
-}
-
-fun <T> Set<List<T>>.updateByEachIndependentInsertion(
-    name: T,
-    items: List<T>,
-    isKeepOriginalPath: Boolean
-): Set<List<T>> {
-    return this.updateThoseEndWith(
-        name,
-        isKeepOriginalPath
-    ) { l: List<T> -> // copy list For Each item And Insert the item At Head
-        items.map { // (l.asReversed() + it).asReversed()
-            val temp = l.toMutableList()
-            temp.add(0, it)
-            temp
-        }
-    }
 }
 
 // used to unfold the program loop for `times`
@@ -59,9 +28,13 @@ fun constructPath(cfg: BlockGraph): Set<List<Block>> {
     while (items.any { !cfg.tails.contains(it) }) {
         items = growingPaths.mapNotNull { it.firstOrNull() }.toSet()
         items = growingPaths.getItemsAppearingInEachPathsNoMoreThan(items, 2).toSet()
-        items.forEach { block ->
-            growingPaths = growingPaths.updateByEachIndependentInsertion(block, cfg.getSuccsOf(block), false)
-        }
+        growingPaths =
+            growingPaths.map { p ->
+                items.map { block ->
+                    if (block == p[0]) cfg.getSuccsOf(block).map { listOf(it) + p } else listOf()
+                }.flatten()
+            }
+                .flatten().toSet()
         finalPaths += growingPaths.filter { cfg.tails.contains(it.first()) }
     }
     return finalPaths
