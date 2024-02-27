@@ -6,7 +6,6 @@ import soot.jimple.internal.JInstanceFieldRef
 import soot.jimple.internal.JReturnStmt
 import soot.jimple.internal.JReturnVoidStmt
 import soot.jimple.internal.JStaticInvokeExpr
-import soot.util.Numberable
 import kotlin.math.floor
 
 val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
@@ -122,6 +121,9 @@ fun Slicer.smtExpand(): String {
     fun transformName(varName: Any): String {
         when (varName) {
             IntType.v() -> return "Int"
+            VoidType.v() -> return "void"
+            CharType.v() -> return "Int"
+            ArrayType.v(CharType.v(), 1) -> return "(Array Int Int)" // to be added
             BooleanType.v() -> return "Bool"
         }
         val derefName = if (varName is RefType) varName.sootClass else varName
@@ -136,9 +138,21 @@ fun Slicer.smtExpand(): String {
         }
     }
 
+    fun transformDefinitionName(varName: Local): String {
+        val sym = reversePublicSymbols[derefName]
+        if (sym == null) {
+            val name = grabRandomName()
+            publicSymbols[name] = derefName
+            reversePublicSymbols[derefName] = name
+            return name
+        } else {
+            return sym
+        }
+    }
+
     fun transformValue(value: Value): String = when (value) {
-        is NewExpr -> "${transformTypeToCppCompatWithStructPrefix(value.baseType)}{}"
-        is JInstanceFieldRef -> {
+//        is NewExpr -> "${transformTypeToCppCompatWithStructPrefix(value.baseType)}{}"
+        is InstanceFieldRef -> {
 //            val className = transformTypeToCppCompatWithStructPrefix(value.type)
             val className = value.field.declaringClass
             val fieldName = value.field.name
@@ -146,61 +160,122 @@ fun Slicer.smtExpand(): String {
             "($fieldName ${transformName(value.base)})"
         }
 
-        is StaticFieldRef -> "${value.fieldRef.declaringClass().toString().replace('.', '_')}_${value.fieldRef.name()}"
+//        is StaticFieldRef -> "${value.fieldRef.declaringClass().toString().replace('.', '_')}_${value.fieldRef.name()}"
         is VirtualInvokeExpr -> {
-            functions.putIfAbsent(value.method.name, (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
-            "(${value.method.name} ${(listOf(value.base) + value.args).joinToString(", ") { transformValue(it) }})"
+            functions.putIfAbsent(
+                value.method.name,
+                (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
+            "(${value.method.name} ${(listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }})"
+        }
+        // same with virtual for now
+        is SpecialInvokeExpr -> {
+            functions.putIfAbsent(
+                value.method.name,
+                (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
+            "(${value.method.name} ${(listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }})"
         }
 
-        is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
-        is JStaticInvokeExpr -> "${transformTypeToCppCompat(value.method.declaringClass.type)}_${value.method.name}(${
-            (value.args).joinToString(
-                ", "
-            )
-        })"
+        //is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
+        is StaticInvokeExpr -> {
+            functions.putIfAbsent(
+                "${transformName(value.method.declaringClass.type)}_${value.method.name}",
+                value.args.map { it.type } to value.method.returnType)
+            "(${transformName(value.method.declaringClass.type)}_${value.method.name} ${
+                (value.args).joinToString(
+                    " "
+                ) { transformValue(it) }
+            })"
+        }
 
-        is SpecialInvokeExpr -> "${transformValueToCppCompat(value.base)}_${value.method.name}(${
-            (value.args).joinToString(
-                ", "
-            )
-        })"
+//        is DynamicInvokeExpr -> "${value.method.name}(${
+//            (value.bootstrapArgs).joinToString(" ") { transformValueToCppCompat(it) }
+//        }, __FENCE__, ${
+//            value.args.joinToString(
+//                " "
+//            ) { transformValueToCppCompat(it) }
+//        })"
 
-        is DynamicInvokeExpr -> "${value.method.name}(${
-            (value.bootstrapArgs).joinToString(", ") { transformValueToCppCompat(it) }
-        }, __FENCE__, ${
-            value.args.joinToString(
-                ", "
-            ) { transformValueToCppCompat(it) }
-        })"
+        is InterfaceInvokeExpr -> {
+            functions.putIfAbsent(
+                "${
+                    transformName(value.method.declaringClass.type)
+                }_${
+                    value.method.name
+                }",
+                (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
+            "(${
+                transformName(value.method.declaringClass.type)
+            }_${
+                value.method.name
+            } ${
+                (listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }
+            })"
+        }
 
-        is InterfaceInvokeExpr -> "${
-            transformTypeToCppCompat(value.method.declaringClass.type)
-        }_${
-            value.method.name
-        }(${
-            (listOf(value.base) + value.args).joinToString(", ") { transformValueToCppCompat(it) }
-        })"
+        is InstanceOfExpr -> {
+//            functions.putIfAbsent("instanceof", )
+            "true" // temporarily can't deal
+        }
 
         is ClassConstant -> transformTypeToCppCompatWithStructPrefix(value.toSootType())
         is StringConstant -> value.toString()
         is NegExpr -> "-(${transformValueToCppCompat(value.op)})"
         is BinopExpr -> when (value.symbol) {
-            " != " -> "(not (= ${transformValue(value.op1)} ${transformValue(value.op2)}))"
-            " = " -> "(= ${transformValue(value.op1)} ${transformValue(value.op2)})"
+            " != " -> {
+                // compromise to bytecode's comparison of integers to booleans
+                if (value.op1.type is BooleanType && value.op2.type is IntType)
+                    "(not (= ${transformValue(value.op1)} (ite (= 1 ${transformValue(value.op2)}) true false)))"
+                else if (value.op1.type is IntType && value.op2.type is BooleanType)
+                    "(not (= (ite (= 1 ${transformValue(value.op1)}) true false) ${transformValue(value.op2)}))"
+                else
+                    "(not (= ${transformValue(value.op1)} ${transformValue(value.op2)}))"
+            }
+            " == " -> {
+                // compromise to bytecode's comparison of integers to booleans
+                if (value.op1.type is BooleanType && value.op2.type is IntType)
+                    "(= ${transformValue(value.op1)} (ite (= 1 ${transformValue(value.op2)}) true false))"
+                else if (value.op1.type is IntType && value.op2.type is BooleanType)
+                    "(= (ite (= 1 ${transformValue(value.op1)}) true false) ${transformValue(value.op2)})"
+                else
+                    "(= ${transformValue(value.op1)} ${transformValue(value.op2)})"
+            }
             else -> "(${value.symbol} ${transformValue(value.op1)} ${transformValue(value.op2)})"
         }
 
         is Local -> transformName(value)
         is CastExpr -> transformValue(value.op)
-        else -> value.toString()
-    }
 
-    fun transformInvoke(invoke: InvokeExpr) = ""
+        is ArrayRef -> {
+            val arrayType = value.base.type as ArrayType
+            val arrayTySig = "Arr-${transformName(arrayType.baseType)}-${arrayType.numDimensions}"
+            if (arrayType.numDimensions == 1) {
+                functions.putIfAbsent(
+                    "getIndex-${arrayTySig}",
+                    listOf(IntType.v(), ArrayType.v(arrayType.baseType, arrayType.numDimensions)) to arrayType.baseType
+                )
+            } else {
+                functions.putIfAbsent(
+                    "getIndex-${arrayTySig}",
+                    listOf(IntType.v(), ArrayType.v(arrayType.baseType, arrayType.numDimensions)) to ArrayType.v(
+                        arrayType.baseType,
+                        arrayType.numDimensions
+                    )
+                )
+            }
+            "(getIndex-${arrayTySig} ${transformValue(value.index)} ${transformValue(value.base)})"
+        }
+        else -> value.toString()// + value.javaClass
+    }
 
     fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = if (rvalue == null)
         "(declare-const ${transformName(lvalue)} ${transformName(ty)})"
-    else
-        "(define-const ${transformName(lvalue)} ${transformName(ty)} ${transformValue(rvalue)})"
+    else {
+        // compromise to bytecode's assignment of integers to boolean type variables
+        if (ty is BooleanType && rvalue.type is IntType)
+            "(define-const ${transformName(lvalue)} ${transformName(ty)} (ite (= 1 ${transformValue(rvalue)}) true false))"
+        else
+            "(define-const ${transformName(lvalue)} ${transformName(ty)} ${transformValue(rvalue)})"
+    }
 
     fun transformStmt(stmt: Stmt) = when (stmt) {
         is JIdentityStmt -> transformDefine(stmt.rightOp.type, stmt.leftOp)
@@ -210,7 +285,7 @@ fun Slicer.smtExpand(): String {
         is ThrowStmt -> ""
         is JReturnStmt -> ""
         is JReturnVoidStmt -> ""
-        is InvokeStmt -> transformInvoke(stmt.invokeExpr)
+        is InvokeStmt -> ";(assert ${transformValue(stmt.invokeExpr)})" // temporarily unable to figure out the side effect
         else -> "!!!!!!"
     }
 
@@ -231,8 +306,9 @@ fun Slicer.smtExpand(): String {
 
     val header = "(set-logic ALL)\n" + publicSymbols.values.filter { it is Type || it is SootClass }
         .joinToString("") { "(declare-sort ${reversePublicSymbols[it]})\n" } +
+            "(declare-sort void)\n" + // temporarily use a customized void type
             functions.map { (name, types) ->
-                "(declare-fun $name (${types.first.joinToString { transformName(it) }}) ${
+                "(declare-fun $name (${types.first.joinToString(" ") { transformName(it) }}) ${
                     transformName(
                         types.second
                     )
