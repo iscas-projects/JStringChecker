@@ -139,11 +139,11 @@ fun Slicer.smtExpand(): String {
     }
 
     fun transformDefinitionName(varName: Local): String {
-        val sym = reversePublicSymbols[derefName]
+        val sym = reversePublicSymbols[varName]
         if (sym == null) {
             val name = grabRandomName()
-            publicSymbols[name] = derefName
-            reversePublicSymbols[derefName] = name
+            publicSymbols[name] = varName
+            reversePublicSymbols[varName] = name
             return name
         } else {
             return sym
