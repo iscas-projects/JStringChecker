@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix bugs in path finding">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add support for newExpr, coerce to higher type">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
@@ -293,7 +293,23 @@
       <option name="project" value="LOCAL" />
       <updated>1709025736600</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="add support for newExpr, coerce to higher type">
+      <option name="closed" value="true" />
+      <created>1709083650475</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1709083650475</updated>
+    </task>
+    <task id="LOCAL-00014" summary="add support for newExpr, coerce to higher type">
+      <option name="closed" value="true" />
+      <created>1709083673325</created>
+      <option name="number" value="00014" />
+      <option name="presentableId" value="LOCAL-00014" />
+      <option name="project" value="LOCAL" />
+      <updated>1709083673325</updated>
+    </task>
+    <option name="localTasksCounter" value="15" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -330,7 +346,9 @@
     <MESSAGE value="add support for simple cast from int to boolean and array" />
     <MESSAGE value="add simple SSA for mutable variable re-definition" />
     <MESSAGE value="fix bugs in path finding" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix bugs in path finding" />
+    <MESSAGE value="add support for newExpr, coerce to higher type (for null type)" />
+    <MESSAGE value="add support for newExpr, coerce to higher type" />
+    <option name="LAST_COMMIT_MESSAGE" value="add support for newExpr, coerce to higher type" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -353,7 +371,25 @@
           <line>40</line>
           <option name="timeStamp" value="24" />
         </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
+          <line>346</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="30" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
+          <line>338</line>
+          <option name="timeStamp" value="31" />
+        </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
+    <watches-manager>
+      <configuration name="JetRunConfigurationType">
+        <watch expression="publicSymbols.keys.joinToString(&quot;&quot;) { &quot;(declare-sort $it)\n&quot; }" language="kotlin" />
+      </configuration>
+    </watches-manager>
   </component>
 </project>

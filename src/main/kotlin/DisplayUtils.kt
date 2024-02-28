@@ -158,6 +158,7 @@ fun Slicer.smtExpand(): String {
                 functions.putIfAbsent("${transformName(value.baseType)}-init", listOf<Any>() to value.baseType)
                 "${transformName(value.baseType)}-init"
             }
+
             is InstanceFieldRef -> {
 //            val className = transformTypeToCppCompatWithStructPrefix(value.type)
                 val className = value.field.declaringClass
@@ -166,7 +167,15 @@ fun Slicer.smtExpand(): String {
                 "($fieldName ${transformName(value.base)})"
             }
 
-//        is StaticFieldRef -> "${value.fieldRef.declaringClass().toString().replace('.', '_')}_${value.fieldRef.name()}"
+            is StaticFieldRef -> {
+                placeholderDeclarations += "(declare-const ${transformName(value.fieldRef.declaringClass())}-${value.fieldRef.name()} ${
+                    transformName(
+                        value.type
+                    )
+                })\n"
+                "${transformName(value.fieldRef.declaringClass())}-${value.fieldRef.name()}"
+            }
+
             is VirtualInvokeExpr -> {
                 functions.putIfAbsent(
                     value.method.name,
@@ -223,7 +232,7 @@ fun Slicer.smtExpand(): String {
                 "true" // TODO: temporarily can't deal
             }
 
-            is ClassConstant -> transformName(value.toSootType())
+            is ClassConstant -> "${transformName(value.toSootType())}!class"
             is StringConstant -> value.toString()
             is NegExpr -> "(- ${transformValue(value.op)})"
             is BinopExpr -> when (value.symbol) {
@@ -232,11 +241,13 @@ fun Slicer.smtExpand(): String {
                     // compromise to bytecode's comparison of integers to booleans
                     "(not (= ${coerce(value.op1, types)} ${coerce(value.op2, types)}))"
                 }
+
                 " == " -> {
                     val types = listOf(value.op1.type, value.op2.type)
                     // compromise to bytecode's comparison of integers to booleans
                     "(= ${coerce(value.op1, types)} ${coerce(value.op2, types)})"
                 }
+
                 else -> "(${value.symbol} ${transformValue(value.op1)} ${transformValue(value.op2)})"
             }
 
@@ -249,7 +260,10 @@ fun Slicer.smtExpand(): String {
                 if (arrayType.numDimensions == 1) {
                     functions.putIfAbsent(
                         "getIndex-${arrayTySig}",
-                        listOf(IntType.v(), ArrayType.v(arrayType.baseType, arrayType.numDimensions)) to arrayType.baseType
+                        listOf(
+                            IntType.v(),
+                            ArrayType.v(arrayType.baseType, arrayType.numDimensions)
+                        ) to arrayType.baseType
                     )
                 } else {
                     functions.putIfAbsent(
@@ -262,6 +276,7 @@ fun Slicer.smtExpand(): String {
                 }
                 "(getIndex-${arrayTySig} ${transformValue(value.index)} ${transformValue(value.base)})"
             }
+
             else -> value.toString()// + value.javaClass
         }
     }
@@ -270,8 +285,7 @@ fun Slicer.smtExpand(): String {
         // enforce the eval order to get rid of self-reference
         val literal1 = transformName(ty)
         "(declare-const ${transformDefinitionName(lvalue)} $literal1)"
-    }
-    else {
+    } else {
         val literal1 = transformName(ty)
         val literal2 = transformValue(rvalue)
         // compromise to bytecode's assignment of integers to boolean type variables
@@ -289,8 +303,9 @@ fun Slicer.smtExpand(): String {
         is IfStmt -> ""
         is GotoStmt -> ""
         is ThrowStmt -> ""
-        is JReturnStmt -> ""
-        is JReturnVoidStmt -> ""
+        is ReturnStmt -> ""
+        is ReturnVoidStmt -> ""
+        is LookupSwitchStmt -> ""
         is InvokeStmt -> ";(assert ${transformValue(stmt.invokeExpr)})" // temporarily unable to figure out the side effect
         else -> "!!!!!!${stmt.javaClass} "
     }
@@ -311,16 +326,28 @@ fun Slicer.smtExpand(): String {
         }
     }
 
-    val header = "(set-logic ALL)\n" + publicSymbols.values.filter { it is Type || it is SootClass }
-        .joinToString("") { "(declare-sort ${reversePublicSymbols[it]})\n" } +
-            "(declare-sort void)\n" +  // TODO: temporarily use a customized void type
-            functions.map { (name, types) ->
-                "(declare-fun $name (${types.first.joinToString(" ") { transformName(it) }}) ${
-                    transformName(
-                        types.second
-                    )
-                })\n"
-            }.joinToString("") + placeholderDeclarations
-    val trailer = "\n(check-sat)\n(get-model)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
+    // enforce the eval order
+    var header = functions.map { (name, types) ->
+        "(declare-fun $name (${types.first.joinToString(" ") { transformName(it) }}) ${
+            transformName(
+                types.second
+            )
+        })\n"
+    }.joinToString("") + placeholderDeclarations
+    // if the code uses the class constants, add the SootClasses also as concrete values
+    val reflectionClass = if (publicSymbols.values.toString().contains("java.lang.Class"))
+        transformName(Scene.v().getSootClass("java.lang.Class"))
+    else ""
+    header =
+        "(set-logic ALL)\n" + publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
+            .joinToString("") { "(declare-sort $it)\n" } +
+                "(declare-sort void)\n" +  // TODO: temporarily use a customized void type
+                (if (reflectionClass.isNotEmpty())
+                    publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
+                        .joinToString("") { "(declare-const $it!class $reflectionClass)\n" }
+                else "") +
+                header
+    val trailer =
+        "\n(check-sat)\n(get-model)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return header + body + trailer
 }
