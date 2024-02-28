@@ -1,84 +1,8 @@
 import soot.*
-import soot.grimp.internal.GNewInvokeExpr
 import soot.jimple.*
 import soot.jimple.internal.JIdentityStmt
-import soot.jimple.internal.JInstanceFieldRef
-import soot.jimple.internal.JReturnStmt
-import soot.jimple.internal.JReturnVoidStmt
-import soot.jimple.internal.JStaticInvokeExpr
 import soot.util.Numberable
 import kotlin.math.floor
-
-val structFields = mutableMapOf<SootClass, MutableList<SootField>>()
-
-fun transformTypeToCppCompatWithStructPrefix(ty: Type): String {
-    return if ("$ty" in listOf("int", "char", "boolean") ||
-        ((ty is ArrayType && "${ty.baseType}" in listOf("int", "char", "boolean")))) "$ty"
-    else if (ty is ArrayType && ty.baseType is RefType) {
-        structFields[(ty.baseType as RefType).sootClass] = mutableListOf()
-        "struct $ty *".replace('.', '_')
-    }
-    else if (ty is RefType) {
-        structFields[ty.sootClass] = mutableListOf()
-        "struct $ty *".replace('.', '_')
-    } else {
-        "struct $ty *".replace('.', '_')
-    }
-}
-
-/// only for type prefix in a function like "String_append"
-fun transformTypeToCppCompat(ty: Type): String {
-    return "$ty".replace('.', '_')
-}
-
-fun transformValueToCppCompat(value: Value): String {
-    return when (value) {
-        is NewExpr -> "${transformTypeToCppCompatWithStructPrefix(value.baseType)}{}"
-        is JInstanceFieldRef -> {
-//            val className = transformTypeToCppCompatWithStructPrefix(value.type)
-            val className = value.field.declaringClass
-            if (structFields.containsKey(className)) {
-                structFields[className]!!.add(value.field)
-            } else {
-                structFields[className] = mutableListOf(value.field)
-            }
-            "${transformValueToCppCompat(value.base)}->${value.field.name}"
-        }
-        is StaticFieldRef -> "${value.fieldRef.declaringClass().toString().replace('.', '_')}_${value.fieldRef.name()}"
-        is VirtualInvokeExpr -> "${value.method.name}(${(listOf(value.base) + value.args).joinToString(", ")})"
-        is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
-        is JStaticInvokeExpr -> "${transformTypeToCppCompat(value.method.declaringClass.type)}_${value.method.name}(${(value.args).joinToString(", ")})"
-        is SpecialInvokeExpr -> "${transformValueToCppCompat(value.base)}_${value.method.name}(${(value.args).joinToString(", ")})"
-        is DynamicInvokeExpr -> "${value.method.name}(${
-                (value.bootstrapArgs).joinToString(", ") { transformValueToCppCompat(it) }
-            }, __FENCE__, ${
-                value.args.joinToString(
-                    ", "
-                ) { transformValueToCppCompat(it) }
-            })"
-        is InterfaceInvokeExpr -> "${
-            transformTypeToCppCompat(value.method.declaringClass.type)
-            }_${
-                value.method.name
-            }(${
-                (listOf(value.base) + value.args).joinToString(", ") { transformValueToCppCompat(it) }
-            })"
-        is InvokeExpr -> value.toString()
-        is ClassConstant -> transformTypeToCppCompatWithStructPrefix(value.toSootType())
-        is StringConstant -> value.toString()
-        is NegExpr -> "-(${transformValueToCppCompat(value.op)})"
-        else -> value.toString()
-    }
-
-}
-
-private fun formatFieldOrArrayDeclToCppCompat(name: String, ty: Type) = (if (ty is FieldRef) transformValueToCppCompat(ty)
-else if (ty is ArrayType)
-    transformTypeToCppCompatWithStructPrefix(ty).let {
-        "${it.substringBefore('[')}* $name[${it.substringAfter('[')}"
-            .replace("[]", "[10]")
-    }
-else ("${transformTypeToCppCompatWithStructPrefix(ty)} $name"))
 
 fun Slicer.smtExpand(): String {
     // the symbol that are defined and referred in the bytecode, should change to SSA form

@@ -4,9 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add support for newExpr, coerce to higher type">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="temporarily finish grammar fix and switch to semantic (method interpretation) work">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -309,7 +308,15 @@
       <option name="project" value="LOCAL" />
       <updated>1709083673325</updated>
     </task>
-    <option name="localTasksCounter" value="15" />
+    <task id="LOCAL-00015" summary="temporarily finish grammar fix and switch to semantic (method interpretation) work">
+      <option name="closed" value="true" />
+      <created>1709088275159</created>
+      <option name="number" value="00015" />
+      <option name="presentableId" value="LOCAL-00015" />
+      <option name="project" value="LOCAL" />
+      <updated>1709088275159</updated>
+    </task>
+    <option name="localTasksCounter" value="16" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -348,7 +355,8 @@
     <MESSAGE value="fix bugs in path finding" />
     <MESSAGE value="add support for newExpr, coerce to higher type (for null type)" />
     <MESSAGE value="add support for newExpr, coerce to higher type" />
-    <option name="LAST_COMMIT_MESSAGE" value="add support for newExpr, coerce to higher type" />
+    <MESSAGE value="temporarily finish grammar fix and switch to semantic (method interpretation) work" />
+    <option name="LAST_COMMIT_MESSAGE" value="temporarily finish grammar fix and switch to semantic (method interpretation) work" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
