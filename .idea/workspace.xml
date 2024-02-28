@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add support for simple cast from int to boolean and array">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix bugs in path finding">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -95,7 +96,7 @@
     "ignore.virus.scanning.warn.message": "true",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/learning/jconcolic",
-    "settings.editor.selected.configurable": "preferences.keymap"
+    "settings.editor.selected.configurable": "project.kotlinCompiler"
   }
 }]]></component>
   <component name="RecentsManager">
@@ -276,7 +277,23 @@
       <option name="project" value="LOCAL" />
       <updated>1709014273390</updated>
     </task>
-    <option name="localTasksCounter" value="11" />
+    <task id="LOCAL-00011" summary="add simple SSA for mutable variable re-definition">
+      <option name="closed" value="true" />
+      <created>1709015298926</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1709015298926</updated>
+    </task>
+    <task id="LOCAL-00012" summary="fix bugs in path finding">
+      <option name="closed" value="true" />
+      <created>1709025736600</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1709025736600</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -311,7 +328,9 @@
     <MESSAGE value="add support for some java bytecode transform to pass in one case" />
     <MESSAGE value="add support for simple cast from int to boolean" />
     <MESSAGE value="add support for simple cast from int to boolean and array" />
-    <option name="LAST_COMMIT_MESSAGE" value="add support for simple cast from int to boolean and array" />
+    <MESSAGE value="add simple SSA for mutable variable re-definition" />
+    <MESSAGE value="fix bugs in path finding" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix bugs in path finding" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -319,13 +338,20 @@
         <line-breakpoint type="kotlin-line">
           <condition expression="varName.toString().contains(&quot;CompositeBreakIterator&quot;)" language="kotlin" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>131</line>
+          <line>112</line>
           <option name="timeStamp" value="20" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>323</line>
-          <option name="timeStamp" value="21" />
+          <condition expression="pathsOfFunc.toString().contains(&quot;getBreakI&quot;)" language="kotlin" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
+          <line>10</line>
+          <option name="timeStamp" value="22" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <condition expression="b.method.name.toString().contains(&quot;getBreakI&quot;) &amp;&amp; b.method.declaringClass.name.contains(&quot;Composite&quot;)" language="kotlin" mode="CODE_FRAGMENT" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
+          <line>40</line>
+          <option name="timeStamp" value="24" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
