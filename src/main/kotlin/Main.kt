@@ -8,7 +8,7 @@ import java.util.*
 fun main(args: Array<String>) {
 
     for (pathsOfFunc in slice("C:\\Users\\yyzha\\Desktop\\lucene-9.9.1\\lucene-9.9.1\\modules\\lucene-analysis-icu-9.9.1.jar")) { // write to .path files
-        val dir = File("paths" + File.separator + "method-" + pathsOfFunc.key.replace("<", "《").replace(">", "》"))
+        val dir = File("paths", "method-" + pathsOfFunc.key.replace("<", "《").replace(">", "》"))
         if (dir.isDirectory() || dir.mkdir()) {
             pathsOfFunc.value.forEachIndexed { index, slicer ->
                 File(dir, "$index.path").writeText(compatibleSmtlibTransformer(slicer))
@@ -42,8 +42,8 @@ fun slice(classPath: String): HashMap<String, List<Slicer>> {
 //            val blocksWithStringOps = blockCFG.blocks.filter { hasStringOps(it) }
 //            paths = paths.filterOutNotContainAny(blocksWithStringOps)
             val slicers = paths.map { Slicer(it) }
-            if (b?.method?.name != null)
-                pathsOfFunc["${b.method.declaringClass.name}__${b.method?.name!!}"] = slicers
+            if (b?.method?.signature != null)
+                pathsOfFunc["${b.method.declaringClass.name}__${b.method.name}__${b.method?.signature.hashCode()}"] = slicers
         }
     }))
     PackManager.v().runPacks()
