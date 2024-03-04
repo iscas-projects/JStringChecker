@@ -13,10 +13,9 @@ fun Slicer.smtExpand(): String {
     val privateSymbols = mutableListOf<String>()
     // SSA transformation (the scope system is assumed to hold, otherwise a variable might be accessed out of scope)
     val assignOnceSymbols = mutableMapOf<String, List<String>>()
-    // functions
     val functions = mutableMapOf<String, Pair<List<Any>, Any>>()
     // placeholder codes like null definition and class object
-    var placeholderDeclarations = mutableMapOf<String, Any>()
+    val placeholderDeclarations = mutableMapOf<String, Any>()
     fun grabRandomName(): String {
         var name: String
         do {
@@ -74,13 +73,28 @@ fun Slicer.smtExpand(): String {
                 placeholderDeclarations["null-${transformName(ty)}"] = ty
                 return "null-${transformName(ty)}"
             }
+//            if (types.all { it is Type })
+//                try {
+//                    val top = types.fold(types.first() as Type) { acc, newType -> acc.merge(newType as Type, Scene.v()) }
+//                    val castFuncName = "cast-from-${
+//                        transformName(value.type)
+//                    }-to-${
+//                        transformName(top)
+//                    }"
+//                    functions.putIfAbsent(
+//                        castFuncName,
+//                        (listOf(value.type)) to top
+//                    )
+//                    "($castFuncName ${transformValue(value)})"
+//                } finally { }
             return transformValue(value)
         }
 
         return when (value) {
             is NewExpr -> {
-                functions.putIfAbsent("${transformName(value.baseType)}-init", listOf<Any>() to value.baseType)
-                "${transformName(value.baseType)}-init"
+                val funcName = "${transformName(value.baseType)}-init"
+                functions.putIfAbsent(funcName, listOf<Any>() to value.baseType)
+                funcName
             }
 
             is InstanceFieldRef -> {
@@ -98,46 +112,45 @@ fun Slicer.smtExpand(): String {
             }
 
             is InterfaceInvokeExpr -> {
-                functions.putIfAbsent(
-                    "${
-                        transformName(value.method.declaringClass.type)
-                    }_${
-                        value.method.name
-                    }",
-                    (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
-                "(${
+                val funcName = "${
                     transformName(value.method.declaringClass.type)
                 }_${
                     value.method.name
-                } ${
+                }/${value.method.signature.hashCode()}"
+                functions.putIfAbsent(
+                    funcName,
+                    (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
+                "($funcName ${
                     (listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }
                 })"
             }
 
             is InstanceInvokeExpr -> { // treat virtual and special the same
+                val funcName = value.method.name + "/" + value.method.signature.hashCode()
                 functions.putIfAbsent(
-                    value.method.name,
+                    funcName,
                     (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
 
                 // enforce the eval order
                 val prog = (listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }
-                if (value.method.name.contains("read")) { // TODO: remove magic word "read" here
+                if (funcName.contains("read")) { // TODO: remove magic word "read" here
                     val objectsToReassign = listOf(value.base)
                     post = objectsToReassign.joinToString("") {
                         "\n(declare-const ${transformDefinitionName(it)} ${transformName(it.type)})"
                     }
                 }
-                val condition = preconditionOfFunctions(value.method.name, (listOf(value.base) + value.args).map { transformValue(it) })
+                val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
                 if (condition != null) pre = condition.toString() + "\n"
-                "(${value.method.name} $prog)"
+                "($funcName $prog)"
             }
 
             //is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
             is StaticInvokeExpr -> {
+                val funcName = "${transformName(value.method.declaringClass.type)}_${value.method.name}/${value.method.signature.hashCode()}"
                 functions.putIfAbsent(
-                    "${transformName(value.method.declaringClass.type)}_${value.method.name}",
+                    funcName,
                     value.args.map { it.type } to value.method.returnType)
-                "(${transformName(value.method.declaringClass.type)}_${value.method.name} ${
+                "($funcName ${
                     (value.args).joinToString(
                         " "
                     ) { transformValue(it) }
@@ -227,7 +240,19 @@ fun Slicer.smtExpand(): String {
         // TODO: merge with the coerce things
         if (ty is BooleanType && rvalue.type is IntType)
             "(define-const ${transformDefinitionName(lvalue)} $literal1 (ite (= 1 $literal2) true false))"
-        else
+        else if (ty != rvalue.type) {
+            // TODO: temporarily use a cast here
+            val castFuncName = "cast-from-${
+                transformName(rvalue.type)
+            }-to-${
+                transformName(ty)
+            }"
+            functions.putIfAbsent(
+                castFuncName,
+                (listOf(rvalue.type)) to ty
+            )
+            "(define-const ${transformDefinitionName(lvalue)} $literal1 ($castFuncName $literal2))"
+        } else
             "(define-const ${transformDefinitionName(lvalue)} $literal1 $literal2)"
     }
 
@@ -296,7 +321,9 @@ fun Slicer.smtExpand(): String {
         transformName(Scene.v().getSootClass("java.lang.Class"))
     else ""
     header =
-        "(set-option :produce-unsat-cores true)\n(set-logic ALL)\n" +
+                "(set-option :produce-unsat-cores true) ; enable generation of unsat cores\n" +
+                "(set-option :produce-models true) ; enable model generation\n" +
+                "(set-option :produce-proofs true) ; enable proof generation\n" + "(set-logic ALL)\n" +
                 publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
                     .joinToString("") { "(declare-sort $it)\n" } +
                 "(declare-sort void)\n" +  // TODO: temporarily use a customized void type

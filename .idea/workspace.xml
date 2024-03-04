@@ -4,11 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="refactor: delete non-smt-related functions">
-      <change afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: definition system, pre- and post- conditions, minor changes">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -67,22 +66,22 @@
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "iscas-zac"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;iscas-zac&quot;
   }
-}]]></component>
+}</component>
   <component name="GitHubPullRequestState">{
   &quot;prStates&quot;: []
 }</component>
   <component name="GitLabMergeRequestsSettings">{}</component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "https://github.com/iscas-projects/JStringChecker",
-    "accountId": "30c463b8-5061-47c4-a844-e1f3ef3b406f"
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/iscas-projects/JStringChecker&quot;,
+    &quot;accountId&quot;: &quot;30c463b8-5061-47c4-a844-e1f3ef3b406f&quot;
   }
-}]]></component>
+}</component>
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$PROJECT_DIR$/../../Programs/Scoop/apps/gradle/current/.gradle/caches/modules-2/files-2.1/org.soot-oss/soot/4.4.1/d72169e83fa98cd0a13d36a9e4792c658e9ad72e/soot-4.4.1.jar!/soot/jimple/NewExpr.class" root0="SKIP_INSPECTION" />
   </component>
@@ -103,7 +102,7 @@
     "Gradle.构建 test_native_build.executor": "Run",
     "Kotlin 脚本(测试版).build.gradle.kts.executor": "Run",
     "Kotlin.MainKt (1).executor": "Run",
-    "Kotlin.MainKt.executor": "Run",
+    "Kotlin.MainKt.executor": "Debug",
     "Kotlin.TestJavaParserKt.executor": "Run",
     "RunOnceActivity.OpenProjectViewOnStart": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
@@ -339,7 +338,15 @@
       <option name="project" value="LOCAL" />
       <updated>1709089049741</updated>
     </task>
-    <option name="localTasksCounter" value="17" />
+    <task id="LOCAL-00017" summary="add: definition system, pre- and post- conditions, minor changes">
+      <option name="closed" value="true" />
+      <created>1709261388044</created>
+      <option name="number" value="00017" />
+      <option name="presentableId" value="LOCAL-00017" />
+      <option name="project" value="LOCAL" />
+      <updated>1709261388044</updated>
+    </task>
+    <option name="localTasksCounter" value="18" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -380,7 +387,8 @@
     <MESSAGE value="add support for newExpr, coerce to higher type" />
     <MESSAGE value="temporarily finish grammar fix and switch to semantic (method interpretation) work" />
     <MESSAGE value="refactor: delete non-smt-related functions" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: delete non-smt-related functions" />
+    <MESSAGE value="add: definition system, pre- and post- conditions, minor changes" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: definition system, pre- and post- conditions, minor changes" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -402,36 +410,6 @@
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
           <line>40</line>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>304</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="30" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>295</line>
-          <option name="timeStamp" value="31" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <condition expression="varName.toString().contains(&quot;java.lang.String&quot;)" language="kotlin" />
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>33</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="33" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
-          <line>12</line>
-          <properties>
-            <option name="lambda-ordinal" value="-1" />
-          </properties>
-          <option name="timeStamp" value="34" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
