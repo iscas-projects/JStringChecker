@@ -114,11 +114,7 @@ fun Slicer.smtExpand(): String {
 //            val className = transformTypeToCppCompatWithStructPrefix(value.type)
                 val className = value.field.declaringClass
                 val fieldName = value.field.name + "/${className.hashCode()}" // TODO: check if inherited field works
-//                registerFunctionAndUpcastArguments(fieldName, listOf(value.base), value.field.type)
-                functions.putIfAbsent(fieldName, listOf(className) to value.field.type)
-
-                val args = coerce(value.base, listOf(functions[fieldName]!!.first.first() as Numberable))
-                "($fieldName $args)"
+                registerFunctionAndUpcastArguments(fieldName, listOf(value.base), value.field.type)
             }
 
             is StaticFieldRef -> {
@@ -133,45 +129,30 @@ fun Slicer.smtExpand(): String {
                 }_${
                     value.method.name
                 }/${value.method.signature.hashCode()}"
-                functions.putIfAbsent(
-                    funcName,
-                    (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
 
-                val args = (listOf(value.base) + value.args).zip(functions[funcName]!!.first)
-                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
-                "($funcName $args)"
+                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args), value.method.returnType)
             }
 
             is InstanceInvokeExpr -> { // treat virtual and special the same
                 val funcName = value.method.name + "/" + value.method.signature.hashCode()
-                functions.putIfAbsent(
-                    funcName,
-                    (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
 
-                // enforce the eval order
-                val args = (listOf(value.base) + value.args).zip(functions[funcName]!!.first)
-                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
-                if (funcName.contains("read")) { // TODO: remove magic word "read" here
-                    val objectsToReassign = listOf(value.base)
-                    post = objectsToReassign.joinToString("") {
-                        "\n(declare-const ${transformDefinitionName(it)} ${transformName(it.type)})"
-                    }
-                }
                 val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
                 if (condition != null) pre = condition.toString() + "\n"
-                "($funcName $args)"
+                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args), value.method.returnType)
+
+//                if (funcName.contains("read")) { // TODO: remove magic word "read" here
+//                    val objectsToReassign = listOf(value.base)
+//                    post = objectsToReassign.joinToString("") {
+//                        "\n(declare-const ${transformDefinitionName(it)} ${transformName(it.type)})"
+//                    }
+//                }
             }
 
             //is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
             is StaticInvokeExpr -> {
                 val funcName = "${transformName(value.method.declaringClass.type)}_${value.method.name}/${value.method.signature.hashCode()}"
-                functions.putIfAbsent(
-                    funcName,
-                    value.args.map { it.type } to value.method.returnType)
 
-                val args = value.args.zip(functions[funcName]!!.first)
-                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
-                "($funcName $args)"
+                registerFunctionAndUpcastArguments(funcName, value.args, value.method.returnType)
             }
 
 //        is DynamicInvokeExpr -> "${value.method.name}(${ TODO: add this back
@@ -237,7 +218,7 @@ fun Slicer.smtExpand(): String {
                         "getIndex-${arrayTySig}",
                         listOf(IntType.v(), ArrayType.v(arrayType.baseType, arrayType.numDimensions)) to ArrayType.v(
                             arrayType.baseType,
-                            arrayType.numDimensions
+                            arrayType.numDimensions - 1
                         )
                     )
                 }

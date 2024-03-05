@@ -4,7 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: update base instances instead of adding new variables when fields and array members are updated (e.g. a[1] = 2)">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: badly-written upcast stuff for invocation and field-ref arguments">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -360,7 +361,15 @@
       <option name="project" value="LOCAL" />
       <updated>1709619129069</updated>
     </task>
-    <option name="localTasksCounter" value="20" />
+    <task id="LOCAL-00020" summary="add: badly-written upcast stuff for invocation and field-ref arguments">
+      <option name="closed" value="true" />
+      <created>1709621479813</created>
+      <option name="number" value="00020" />
+      <option name="presentableId" value="LOCAL-00020" />
+      <option name="project" value="LOCAL" />
+      <updated>1709621479813</updated>
+    </task>
+    <option name="localTasksCounter" value="21" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -403,7 +412,8 @@
     <MESSAGE value="refactor: delete non-smt-related functions" />
     <MESSAGE value="add: definition system, pre- and post- conditions, minor changes" />
     <MESSAGE value="add: update base instances instead of adding new variables when fields and array members are updated (e.g. a[1] = 2)" />
-    <option name="LAST_COMMIT_MESSAGE" value="add: update base instances instead of adding new variables when fields and array members are updated (e.g. a[1] = 2)" />
+    <MESSAGE value="add: badly-written upcast stuff for invocation and field-ref arguments" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: badly-written upcast stuff for invocation and field-ref arguments" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -419,12 +429,6 @@
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
           <line>40</line>
           <option name="timeStamp" value="24" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <condition expression="value.field.name.contains(&quot;fieldsData&quot;)" language="kotlin" />
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>119</line>
-          <option name="timeStamp" value="25" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
