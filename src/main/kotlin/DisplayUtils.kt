@@ -64,6 +64,20 @@ fun Slicer.smtExpand(): String {
     fun transformValue(value: Value): String {
         // compromise to Kotlin's not allowing local function mutual recursion
         fun coerce(value: Value, types: List<Numberable>): String {
+            if (types.size == 1 && types[0] is SootClass) {
+                val typeToCoerce = types[0]
+                val castFuncName = "cast-from-${
+                    transformName(value.type)
+                }-to-${
+                    transformName(typeToCoerce)
+                }"
+                functions.putIfAbsent(
+                    castFuncName,
+                    (listOf(value.type)) to typeToCoerce
+                )
+                return "($castFuncName ${transformValue(value)})"
+            }
+            // TODO: make more clean, distinguish the one-type usage above and the merge-to-super usage below
             if (types.map { if (it is RefType) it.sootClass else it }.let { it.all { item -> item == it[0] } })
                 return transformValue(value)
             if (types.contains(BooleanType.v()) && value.type is IntType)
@@ -73,21 +87,20 @@ fun Slicer.smtExpand(): String {
                 placeholderDeclarations["null-${transformName(ty)}"] = ty
                 return "null-${transformName(ty)}"
             }
-//            if (types.all { it is Type })
-//                try {
-//                    val top = types.fold(types.first() as Type) { acc, newType -> acc.merge(newType as Type, Scene.v()) }
-//                    val castFuncName = "cast-from-${
-//                        transformName(value.type)
-//                    }-to-${
-//                        transformName(top)
-//                    }"
-//                    functions.putIfAbsent(
-//                        castFuncName,
-//                        (listOf(value.type)) to top
-//                    )
-//                    "($castFuncName ${transformValue(value)})"
-//                } finally { }
+
             return transformValue(value)
+        }
+
+        // smtlib doesn't know subtypes, so the arguments must be upcast
+        fun registerFunctionAndUpcastArguments(funcName: String, args: List<Value>, retType: Type): String {
+            functions.putIfAbsent(
+                funcName,
+                args.map { it.type } to retType
+            )
+
+            val argsString = args.zip(functions[funcName]!!.first)
+                .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
+            return "($funcName $argsString)"
         }
 
         return when (value) {
@@ -100,9 +113,12 @@ fun Slicer.smtExpand(): String {
             is InstanceFieldRef -> {
 //            val className = transformTypeToCppCompatWithStructPrefix(value.type)
                 val className = value.field.declaringClass
-                val fieldName = value.field.name
+                val fieldName = value.field.name + "/${className.hashCode()}" // TODO: check if inherited field works
+//                registerFunctionAndUpcastArguments(fieldName, listOf(value.base), value.field.type)
                 functions.putIfAbsent(fieldName, listOf(className) to value.field.type)
-                "($fieldName ${transformName(value.base)})"
+
+                val args = coerce(value.base, listOf(functions[fieldName]!!.first.first() as Numberable))
+                "($fieldName $args)"
             }
 
             is StaticFieldRef -> {
@@ -120,9 +136,10 @@ fun Slicer.smtExpand(): String {
                 functions.putIfAbsent(
                     funcName,
                     (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
-                "($funcName ${
-                    (listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }
-                })"
+
+                val args = (listOf(value.base) + value.args).zip(functions[funcName]!!.first)
+                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
+                "($funcName $args)"
             }
 
             is InstanceInvokeExpr -> { // treat virtual and special the same
@@ -132,7 +149,8 @@ fun Slicer.smtExpand(): String {
                     (listOf(value.base) + value.args).map { it.type } to value.method.returnType)
 
                 // enforce the eval order
-                val prog = (listOf(value.base) + value.args).joinToString(" ") { transformValue(it) }
+                val args = (listOf(value.base) + value.args).zip(functions[funcName]!!.first)
+                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
                 if (funcName.contains("read")) { // TODO: remove magic word "read" here
                     val objectsToReassign = listOf(value.base)
                     post = objectsToReassign.joinToString("") {
@@ -141,7 +159,7 @@ fun Slicer.smtExpand(): String {
                 }
                 val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
                 if (condition != null) pre = condition.toString() + "\n"
-                "($funcName $prog)"
+                "($funcName $args)"
             }
 
             //is GNewInvokeExpr -> "${value.baseType}_${value.method.name}(${(value.args).joinToString(", ")})"
@@ -150,14 +168,13 @@ fun Slicer.smtExpand(): String {
                 functions.putIfAbsent(
                     funcName,
                     value.args.map { it.type } to value.method.returnType)
-                "($funcName ${
-                    (value.args).joinToString(
-                        " "
-                    ) { transformValue(it) }
-                })"
+
+                val args = value.args.zip(functions[funcName]!!.first)
+                    .joinToString(" ") { (arg, type) -> coerce(arg, listOf(type as Numberable)) }
+                "($funcName $args)"
             }
 
-//        is DynamicInvokeExpr -> "${value.method.name}(${
+//        is DynamicInvokeExpr -> "${value.method.name}(${ TODO: add this back
 //            (value.bootstrapArgs).joinToString(" ") { transformValueToCppCompat(it) }
 //        }, __FENCE__, ${
 //            value.args.joinToString(
@@ -169,6 +186,8 @@ fun Slicer.smtExpand(): String {
 //            functions.putIfAbsent("instanceof", )
                 "true" // TODO: temporarily can't deal
             }
+
+//            is LengthExpr TODO: add this
 
             is ClassConstant -> "${transformName(value.toSootType())}!class"
             is StringConstant -> value.toString()
@@ -351,6 +370,6 @@ fun Slicer.smtExpand(): String {
                 else "") +
                 header
     val trailer =
-        "\n(check-sat)\n(get-model)\n(get-unsat-core)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
+        "\n(check-sat)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return header + body + trailer
 }
