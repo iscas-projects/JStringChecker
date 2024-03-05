@@ -229,31 +229,49 @@ fun Slicer.smtExpand(): String {
         }
     }
 
-    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null) = if (rvalue == null) {
+    fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null): String = if (rvalue == null) {
         // enforce the eval order to get rid of self-reference
         val literal1 = transformName(ty)
         "(declare-const ${transformDefinitionName(lvalue)} $literal1)"
     } else {
         val literal1 = transformName(ty)
         val literal2 = transformValue(rvalue)
-        // compromise to bytecode's assignment of integers to boolean type variables
-        // TODO: merge with the coerce things
-        if (ty is BooleanType && rvalue.type is IntType)
-            "(define-const ${transformDefinitionName(lvalue)} $literal1 (ite (= 1 $literal2) true false))"
-        else if (ty != rvalue.type) {
-            // TODO: temporarily use a cast here
-            val castFuncName = "cast-from-${
-                transformName(rvalue.type)
-            }-to-${
-                transformName(ty)
-            }"
-            functions.putIfAbsent(
-                castFuncName,
-                (listOf(rvalue.type)) to ty
-            )
-            "(define-const ${transformDefinitionName(lvalue)} $literal1 ($castFuncName $literal2))"
-        } else
-            "(define-const ${transformDefinitionName(lvalue)} $literal1 $literal2)"
+
+        fun coercedInitializer(ty: Type, rvalue: Value, initializer: String) = // TODO: merge with the coerce things
+            if (ty is BooleanType && rvalue.type is IntType) // compromise to bytecode's assignment of integers to boolean type variables
+                "(ite (= 1 $initializer) true false)"
+            else if (ty != rvalue.type) {
+                // TODO: temporarily use a cast here
+                val castFuncName = "cast-from-${
+                    transformName(rvalue.type)
+                }-to-${
+                    transformName(ty)
+                }"
+                functions.putIfAbsent(
+                    castFuncName,
+                    (listOf(rvalue.type)) to ty
+                )
+                "($castFuncName $initializer)"
+            } else
+                initializer
+
+        when (lvalue) { // deal with reassigning fields, where we create a new variable not for the field but for the base
+            is ArrayRef -> {
+                val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
+                val newLvalue = transformValue(lvalue)
+                "$redeclareBase\n(assert (= $newLvalue ${coercedInitializer(ty, rvalue, literal2)}))"
+            }
+            is InstanceFieldRef -> { // TODO: identical branches
+                val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
+                val newLvalue = transformValue(lvalue)
+                "$redeclareBase\n(assert (= $newLvalue ${coercedInitializer(ty, rvalue, literal2)}))"
+            }
+            //is StaticFieldRef -> "" TODO: make it linked to a class object
+            else -> {
+                assert(lvalue is Local)
+                "(define-const ${transformDefinitionName(lvalue)} $literal1 ${coercedInitializer(ty, rvalue, literal2)})"
+            }
+        }
     }
 
     // second method after entry
