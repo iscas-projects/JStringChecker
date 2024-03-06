@@ -168,19 +168,50 @@ fun Slicer.smtExpand(): String {
                 registerFunctionAndUpcastArguments(funcName, value.args, value.method.parameterTypes, value.method.returnType)
             }
 
-//        is DynamicInvokeExpr -> "${value.method.name}(${ TODO: add this back
-//            (value.bootstrapArgs).joinToString(" ") { transformValueToCppCompat(it) }
-//        }, __FENCE__, ${
-//            value.args.joinToString(
-//                " "
-//            ) { transformValueToCppCompat(it) }
-//        })"
+            is DynamicInvokeExpr -> {
+                val method = value.method
+                if (method.name.contains("makeConcatWithConstants")) {
+                    "(str.++ ${
+                        (value.bootstrapArgs).joinToString(" ") { transformValue(it) }} ${
+                        value.args.joinToString(
+                            " "
+                        ) { transformValue(it) }
+                    })"
+                } else {
+                    "(${value.method.name} ${
+                        (value.bootstrapArgs).joinToString(" ") { transformValue(it) }
+                    } ${
+                        value.args.joinToString(
+                            " "
+                        ) { transformValue(it) }
+                    })"
+                }
+//                "${value.method.name}(${
+//                    (value.bootstrapArgs).joinToString(" ") { transformValue(it) }
+//                }, __FENCE__, ${
+//                    value.args.joinToString(
+//                        " "
+//                    ) { transformValueToCppCompat(it) }
+//                })"
+            }
 
             is InstanceOfExpr -> {
                 "***" // TODO: temporarily can't deal
             }
 
-//            is LengthExpr TODO: add this
+            is LengthExpr -> {
+                val baseTy = value.op.type
+//                if (baseTy is ArrayType && baseTy.baseType is CharType)
+//                    "(str.len ${transformValue(value.op)})"
+                if (baseTy is ArrayType) {
+                    val arrayTySig = "Arr-${transformName(baseTy.baseType)}-${baseTy.numDimensions}"
+                    functions.putIfAbsent(
+                        "getLength-${arrayTySig}",
+                        listOf(baseTy) to IntType.v()
+                    )
+                    "(getLength-${arrayTySig} ${transformValue(value.op)})"
+                } else { print(baseTy); "***" }
+            }
 
             is ClassConstant -> "${transformName(value.toSootType())}!class"
             is StringConstant -> value.toString()
