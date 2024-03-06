@@ -64,7 +64,7 @@ fun Slicer.smtExpand(): String {
     fun transformValue(value: Value): String {
         // compromise to Kotlin's not allowing local function mutual recursion
         fun coerce(value: Value, types: List<Numberable>): String {
-            if (types.size == 1 && types[0] is SootClass) {
+            if (types.size == 1 && value.type != types[0]) {
                 val typeToCoerce = types[0]
                 val castFuncName = "cast-from-${
                     transformName(value.type)
@@ -75,27 +75,29 @@ fun Slicer.smtExpand(): String {
                     castFuncName,
                     (listOf(value.type)) to typeToCoerce
                 )
-                return "($castFuncName ${transformValue(value)})"
+                if (value.type !is NullType)
+                    return "($castFuncName ${transformValue(value)})"
+                // else go to below
+            }
+            if (value.type is NullType) { // default to cast the null's
+                val ty = types.first { it !is NullType }
+                placeholderDeclarations["null-${transformName(ty)}"] = ty
+                return "null-${transformName(ty)}"
             }
             // TODO: make more clean, distinguish the one-type usage above and the merge-to-super usage below
             if (types.map { if (it is RefType) it.sootClass else it }.let { it.all { item -> item == it[0] } })
                 return transformValue(value)
             if (types.contains(BooleanType.v()) && value.type is IntType)
                 return "(ite (= 1 ${transformValue(value)}) true false)" // special downcast
-            if (value.type is NullType) { // default to cast the null's
-                val ty = types.first { it !is NullType }
-                placeholderDeclarations["null-${transformName(ty)}"] = ty
-                return "null-${transformName(ty)}"
-            }
 
             return transformValue(value)
         }
 
         // smtlib doesn't know subtypes, so the arguments must be upcast
-        fun registerFunctionAndUpcastArguments(funcName: String, args: List<Value>, retType: Type): String {
+        fun registerFunctionAndUpcastArguments(funcName: String, args: List<Value>, paramTypes: List<Numberable>, retType: Type): String {
             functions.putIfAbsent(
                 funcName,
-                args.map { it.type } to retType
+                paramTypes to retType
             )
 
             val argsString = args.zip(functions[funcName]!!.first)
@@ -114,7 +116,7 @@ fun Slicer.smtExpand(): String {
 //            val className = transformTypeToCppCompatWithStructPrefix(value.type)
                 val className = value.field.declaringClass
                 val fieldName = value.field.name + "/${className.hashCode()}" // TODO: check if inherited field works
-                registerFunctionAndUpcastArguments(fieldName, listOf(value.base), value.field.type)
+                registerFunctionAndUpcastArguments(fieldName, listOf(value.base), listOf(className), value.field.type)
             }
 
             is StaticFieldRef -> {
@@ -130,7 +132,8 @@ fun Slicer.smtExpand(): String {
                     value.method.name
                 }/${value.method.signature.hashCode()}"
 
-                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args), value.method.returnType)
+                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
+                    (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType)
             }
 
             is InstanceInvokeExpr -> { // treat virtual and special the same
@@ -138,7 +141,8 @@ fun Slicer.smtExpand(): String {
 
                 val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
                 if (condition != null) pre = condition.toString() + "\n"
-                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args), value.method.returnType)
+                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
+                    (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType)
 
 //                if (funcName.contains("read")) { // TODO: remove magic word "read" here
 //                    val objectsToReassign = listOf(value.base)
@@ -152,7 +156,7 @@ fun Slicer.smtExpand(): String {
             is StaticInvokeExpr -> {
                 val funcName = "${transformName(value.method.declaringClass.type)}_${value.method.name}/${value.method.signature.hashCode()}"
 
-                registerFunctionAndUpcastArguments(funcName, value.args, value.method.returnType)
+                registerFunctionAndUpcastArguments(funcName, value.args, value.method.parameterTypes, value.method.returnType)
             }
 
 //        is DynamicInvokeExpr -> "${value.method.name}(${ TODO: add this back
@@ -164,8 +168,7 @@ fun Slicer.smtExpand(): String {
 //        })"
 
             is InstanceOfExpr -> {
-//            functions.putIfAbsent("instanceof", )
-                "true" // TODO: temporarily can't deal
+                "***" // TODO: temporarily can't deal
             }
 
 //            is LengthExpr TODO: add this
