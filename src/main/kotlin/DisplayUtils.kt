@@ -32,6 +32,7 @@ fun Slicer.smtExpand(): String {
             CharType.v() -> return "Int"
             Scene.v().getSootClass("java.lang.String") -> return "String"
             ArrayType.v(CharType.v(), 1) -> return "(Array Int Int)" // to be added
+            ArrayType.v(RefType.v("java.lang.String"), 1) -> return "(Array Int String)"
             BooleanType.v() -> return "Bool"
         }
         val sym = reversePublicSymbols[derefName]
@@ -67,9 +68,9 @@ fun Slicer.smtExpand(): String {
             if (types.size == 1 && value.type != types[0]) {
                 val typeToCoerce = types[0]
                 val castFuncName = "cast-from-${
-                    transformName(value.type)
+                    transformName(value.type).replace("[( )]".toRegex(), "__") // deal with compound (array) type
                 }-to-${
-                    transformName(typeToCoerce)
+                    transformName(typeToCoerce).replace("[( )]".toRegex(), "__")
                 }"
                 functions.putIfAbsent(
                     castFuncName,
@@ -107,8 +108,16 @@ fun Slicer.smtExpand(): String {
 
         return when (value) {
             is NewExpr -> {
-                val funcName = "${transformName(value.baseType)}-init"
+                val funcName = "${transformName(value.baseType)}-init" // placeholder value
                 functions.putIfAbsent(funcName, listOf<Any>() to value.baseType)
+                funcName
+            }
+
+            is NewArrayExpr -> {
+                // TODO: multi-dimension array
+                val funcName = "arr-${transformName(value.baseType)}-init"
+                // TODO: array bound
+                functions.putIfAbsent(funcName, listOf<Any>() to ArrayType.v(value.baseType, 1))
                 funcName
             }
 
@@ -194,15 +203,16 @@ fun Slicer.smtExpand(): String {
 
             is Local -> transformName(value)
             is CastExpr -> {
+                val castFuncName = "cast-from-${
+                    transformName(value.op.type).replace("[( ]".toRegex(), "__")
+                }-to-${
+                    transformName(value.castType).replace("[( ]".toRegex(), "__")
+                }"
                 functions.putIfAbsent(
-                    "cast-from-${
-                        transformName(value.op.type)
-                    }-to-${
-                        transformName(value.castType)
-                    }",
+                    castFuncName,
                     (listOf(value.op.type)) to value.castType
                 )
-                "(cast-from-${transformName(value.op.type)}-to-${transformName(value.castType)} ${transformValue(value.op)})"
+                "($castFuncName ${transformValue(value.op)})"
             }
 
             is ArrayRef -> {
@@ -246,9 +256,9 @@ fun Slicer.smtExpand(): String {
             else if (ty != rvalue.type) {
                 // TODO: temporarily use a cast here
                 val castFuncName = "cast-from-${
-                    transformName(rvalue.type)
+                    transformName(rvalue.type).replace("[( )]".toRegex(), "__")
                 }-to-${
-                    transformName(ty)
+                    transformName(ty).replace("[( )]".toRegex(), "__")
                 }"
                 functions.putIfAbsent(
                     castFuncName,
