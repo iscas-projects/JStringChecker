@@ -177,7 +177,7 @@ fun Slicer.smtExpand(): String {
                         (value.bootstrapArgs).joinToString(" ") { transformValue(it) }} ${
                         value.args.joinToString(
                             " "
-                        ) { transformValue(it) }
+                        ) { coerce(it, listOf(Scene.v().getSootClass("java.lang.String"))) }
                     })"
                 } else {
                     "(${value.method.name} ${
@@ -198,7 +198,7 @@ fun Slicer.smtExpand(): String {
             }
 
             is InstanceOfExpr -> {
-                "***" // TODO: temporarily can't deal
+                isCastable(value.op.type, value.checkType, true).toString() // TODO: temporarily can't deal
             }
 
             is LengthExpr -> {

@@ -4,11 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: partial fix the upcast coerce conditions">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
-    </list>
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: string concat something **as a string**" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -410,7 +406,31 @@
       <option name="project" value="LOCAL" />
       <updated>1709774734001</updated>
     </task>
-    <option name="localTasksCounter" value="26" />
+    <task id="LOCAL-00026" summary="add: make cast-able judgement as an independent function">
+      <option name="closed" value="true" />
+      <created>1709787429288</created>
+      <option name="number" value="00026" />
+      <option name="presentableId" value="LOCAL-00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1709787429288</updated>
+    </task>
+    <task id="LOCAL-00027" summary="add: byte (java) type temporarily as int (smt) type">
+      <option name="closed" value="true" />
+      <created>1709787454287</created>
+      <option name="number" value="00027" />
+      <option name="presentableId" value="LOCAL-00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1709787454287</updated>
+    </task>
+    <task id="LOCAL-00028" summary="fix: string concat something **as a string**">
+      <option name="closed" value="true" />
+      <created>1709788390937</created>
+      <option name="number" value="00028" />
+      <option name="presentableId" value="LOCAL-00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1709788390937</updated>
+    </task>
+    <option name="localTasksCounter" value="29" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -459,7 +479,10 @@
     <MESSAGE value="add: NewArrayExpr support and some simple array logic" />
     <MESSAGE value="add: LengthOfExpr and draft version of DynamicInvokeExpr" />
     <MESSAGE value="fix: partial fix the upcast coerce conditions" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: partial fix the upcast coerce conditions" />
+    <MESSAGE value="add: make cast-able judgement as an independent function" />
+    <MESSAGE value="add: byte (java) type temporarily as int (smt) type" />
+    <MESSAGE value="fix: string concat something **as a string**" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: string concat something **as a string**" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -481,6 +504,14 @@
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
           <line>70</line>
           <option name="timeStamp" value="32" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
+          <line>176</line>
+          <properties>
+            <option name="lambda-ordinal" value="-1" />
+          </properties>
+          <option name="timeStamp" value="37" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

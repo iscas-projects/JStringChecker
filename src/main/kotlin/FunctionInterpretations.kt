@@ -223,7 +223,8 @@ fun preconditionOfFunctions(name: String, args: List<String>): SList? {
     }
 }
 
-fun isCastable(subType: Type, topType: Type): Boolean =
-    (subType is RefType && topType is RefType && subType.merge(topType, Scene.v()) != subType) ||
-            (topType is ArrayType && subType is ArrayType && isCastable(subType.baseType, topType.baseType)) ||
-            (topType == RefType.v("java.util.Collection") && subType.toString().contains("(List|Array|Map)".toRegex()))
+fun isCastable(subType: Type, topType: Type, strict: Boolean = false): Boolean =
+    (subType is RefType && topType is RefType && subType.merge(topType, Scene.v()) != subType) || // true subtype
+            (topType == RefType.v("java.lang.String") && !strict) || // xxx.toString() method
+            (topType is ArrayType && subType is ArrayType && isCastable(subType.baseType, topType.baseType)) || // array of subtype
+            (topType == RefType.v("java.util.Collection") && subType.toString().contains("(List|Array|Map)".toRegex())) // collections
