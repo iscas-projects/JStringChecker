@@ -28,6 +28,7 @@ fun Slicer.smtExpand(): String {
         val derefName = if (varName is RefType) varName.sootClass else varName
         when (derefName) {
             IntType.v() -> return "Int"
+            ByteType.v() -> return "Int" // TODO: temporarily use int for program int and byte type
             VoidType.v() -> return "void"
             CharType.v() -> return "Int"
             Scene.v().getSootClass("java.lang.String") -> return "String"
