@@ -64,34 +64,35 @@ fun Slicer.smtExpand(): String {
 
     fun transformValue(value: Value): String {
         // compromise to Kotlin's not allowing local function mutual recursion
-        fun coerce(value: Value, types: List<Numberable>): String {
-            val typeClasses = types.map { if (it is SootClass) RefType.v(it) else it }.filterNot { it == value.type }
+        fun coerce(valueToBeCoerced: Value, types: List<Numberable>): String {
+            val typeClasses = types.map { if (it is SootClass) RefType.v(it) else it }.filterNot { it == valueToBeCoerced.type }
             // TODO: make sure it is more clean, distinguish the one-type usage above and the merge-to-super usage below
-            if (typeClasses.contains(BooleanType.v()) && value.type is IntType)
-                return "(ite (= 1 ${transformValue(value)}) true false)" // special downcast
-            if (typeClasses.size == 1 && value.type is RefType && typeClasses[0] is RefType &&
-                value.type.merge(typeClasses[0] as Type, Scene.v()) != value.type) { // only upcast for now
+            if (typeClasses.contains(BooleanType.v()) && valueToBeCoerced.type is IntType)
+                return "(ite (= 1 ${transformValue(valueToBeCoerced)}) true false)" // special downcast
+            if (typeClasses.size == 1 && isCastable(valueToBeCoerced.type, typeClasses[0] as Type)
+            ) { // only upcast for now
                 val typeToCoerce = typeClasses[0]
                 val castFuncName = "cast-from-${
-                    transformName(value.type).replace("[( )]".toRegex(), "__") // deal with compound (array) type
+                    transformName(valueToBeCoerced.type).replace("[( )]".toRegex(), "__") // deal with compound (array) type
                 }-to-${
                     transformName(typeToCoerce).replace("[( )]".toRegex(), "__")
                 }"
                 functions.putIfAbsent(
                     castFuncName,
-                    (listOf(value.type)) to typeToCoerce
+                    (listOf(valueToBeCoerced.type)) to typeToCoerce
                 )
-                if (value.type !is NullType)
-                    return "($castFuncName ${transformValue(value)})"
+                if (valueToBeCoerced.type !is NullType)
+                    return "($castFuncName ${transformValue(valueToBeCoerced)})"
                 // else go to below
             }
-            if (value.type is NullType) { // default to cast the null's
+            if (valueToBeCoerced.type is NullType) { // default to cast the null's
                 val ty = typeClasses.first { it !is NullType }
                 placeholderDeclarations["null-${transformName(ty)}"] = ty
                 return "null-${transformName(ty)}"
             }
 
-            return transformValue(value)
+
+            return transformValue(valueToBeCoerced)
         }
 
         // smtlib doesn't know subtypes, so the arguments must be upcast

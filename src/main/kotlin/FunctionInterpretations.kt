@@ -1,5 +1,8 @@
+import soot.ArrayType
 import soot.IntType
+import soot.RefType
 import soot.Scene
+import soot.Type
 
 sealed interface SExpression {
     fun toStringWithTransformedName(t: (Any) -> String): String
@@ -219,3 +222,8 @@ fun preconditionOfFunctions(name: String, args: List<String>): SList? {
         else -> null
     }
 }
+
+fun isCastable(subType: Type, topType: Type): Boolean =
+    (subType is RefType && topType is RefType && subType.merge(topType, Scene.v()) != subType) ||
+            (topType is ArrayType && subType is ArrayType && isCastable(subType.baseType, topType.baseType)) ||
+            (topType == RefType.v("java.util.Collection") && subType.toString().contains("(List|Array|Map)".toRegex()))
