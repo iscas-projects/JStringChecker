@@ -65,8 +65,13 @@ fun Slicer.smtExpand(): String {
     fun transformValue(value: Value): String {
         // compromise to Kotlin's not allowing local function mutual recursion
         fun coerce(value: Value, types: List<Numberable>): String {
-            if (types.size == 1 && value.type != types[0]) {
-                val typeToCoerce = types[0]
+            val typeClasses = types.map { if (it is SootClass) RefType.v(it) else it }.filterNot { it == value.type }
+            // TODO: make sure it is more clean, distinguish the one-type usage above and the merge-to-super usage below
+            if (typeClasses.contains(BooleanType.v()) && value.type is IntType)
+                return "(ite (= 1 ${transformValue(value)}) true false)" // special downcast
+            if (typeClasses.size == 1 && value.type is RefType && typeClasses[0] is RefType &&
+                value.type.merge(typeClasses[0] as Type, Scene.v()) != value.type) { // only upcast for now
+                val typeToCoerce = typeClasses[0]
                 val castFuncName = "cast-from-${
                     transformName(value.type).replace("[( )]".toRegex(), "__") // deal with compound (array) type
                 }-to-${
@@ -81,15 +86,10 @@ fun Slicer.smtExpand(): String {
                 // else go to below
             }
             if (value.type is NullType) { // default to cast the null's
-                val ty = types.first { it !is NullType }
+                val ty = typeClasses.first { it !is NullType }
                 placeholderDeclarations["null-${transformName(ty)}"] = ty
                 return "null-${transformName(ty)}"
             }
-            // TODO: make more clean, distinguish the one-type usage above and the merge-to-super usage below
-            if (types.map { if (it is RefType) it.sootClass else it }.let { it.all { item -> item == it[0] } })
-                return transformValue(value)
-            if (types.contains(BooleanType.v()) && value.type is IntType)
-                return "(ite (= 1 ${transformValue(value)}) true false)" // special downcast
 
             return transformValue(value)
         }

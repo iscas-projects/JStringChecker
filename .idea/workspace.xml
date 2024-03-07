@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="refactor: collect multi-statement upcasts into a function">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: LengthOfExpr and draft version of DynamicInvokeExpr">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
     </list>
@@ -377,7 +377,31 @@
       <option name="project" value="LOCAL" />
       <updated>1709622230754</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="fix: registerFunctionAndUpcastArguments to accept param types in function signature">
+      <option name="closed" value="true" />
+      <created>1709713925916</created>
+      <option name="number" value="00022" />
+      <option name="presentableId" value="LOCAL-00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1709713925916</updated>
+    </task>
+    <task id="LOCAL-00023" summary="add: NewArrayExpr support and some simple array logic">
+      <option name="closed" value="true" />
+      <created>1709713995773</created>
+      <option name="number" value="00023" />
+      <option name="presentableId" value="LOCAL-00023" />
+      <option name="project" value="LOCAL" />
+      <updated>1709713995773</updated>
+    </task>
+    <task id="LOCAL-00024" summary="add: LengthOfExpr and draft version of DynamicInvokeExpr">
+      <option name="closed" value="true" />
+      <created>1709714070422</created>
+      <option name="number" value="00024" />
+      <option name="presentableId" value="LOCAL-00024" />
+      <option name="project" value="LOCAL" />
+      <updated>1709714070422</updated>
+    </task>
+    <option name="localTasksCounter" value="25" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -422,7 +446,10 @@
     <MESSAGE value="add: update base instances instead of adding new variables when fields and array members are updated (e.g. a[1] = 2)" />
     <MESSAGE value="add: badly-written upcast stuff for invocation and field-ref arguments" />
     <MESSAGE value="refactor: collect multi-statement upcasts into a function" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: collect multi-statement upcasts into a function" />
+    <MESSAGE value="fix: registerFunctionAndUpcastArguments to accept param types in function signature" />
+    <MESSAGE value="add: NewArrayExpr support and some simple array logic" />
+    <MESSAGE value="add: LengthOfExpr and draft version of DynamicInvokeExpr" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: LengthOfExpr and draft version of DynamicInvokeExpr" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -438,6 +465,12 @@
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
           <line>40</line>
           <option name="timeStamp" value="24" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="kotlin-line">
+          <condition expression="value.type.toString().contains(&quot;Field&quot;)" language="kotlin" />
+          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
+          <line>69</line>
+          <option name="timeStamp" value="32" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
