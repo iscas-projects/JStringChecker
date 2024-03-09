@@ -365,19 +365,12 @@ fun Slicer.smtExpand(): String {
         pre + prog + post
     }
 
-    val predefines = predefineFunctions()
     // enforce the eval order of parsing functions before adding sorts
-    var header = functions.map { (name, types) ->
-        if (predefines.containsKey(name)) predefines[name]!!.toStringWithTransformedName {
-            if (it is String) it
-            else transformName(it)
+    var header = predefineFunctions(functions).joinToString("") { sExpression ->
+        sExpression.toStringWithTransformedName {
+            transformName(it)
         } + "\n"
-        else "(declare-fun $name (${types.first.joinToString(" ") { transformName(it) }}) ${
-            transformName(
-                types.second
-            )
-        })\n"
-    }.joinToString("") +
+    } +
             placeholderDeclarations.map { (name, ty) -> "(declare-const $name ${transformName(ty)})\n" }
                 .joinToString("")
     // if the code uses the class constants, add the SootClasses also as concrete values
@@ -397,6 +390,6 @@ fun Slicer.smtExpand(): String {
                 else "") +
                 header
     val trailer =
-        "\n(check-sat)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
+        "\n(check-sat)\n(get-model)\n(get-unsat-core)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return header + body + trailer
 }

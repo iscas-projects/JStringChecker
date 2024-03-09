@@ -4,7 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: string concat something **as a string**" />
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: string concat something **as a string** and add: instanceof expression">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -90,25 +95,25 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.Build test_native_build.executor": "Run",
-    "Gradle.test_native_build [linkNative].executor": "Run",
-    "Gradle.test_native_build [nativeBinaries].executor": "Run",
-    "Gradle.构建 test_native_build.executor": "Run",
-    "Kotlin 脚本(测试版).build.gradle.kts.executor": "Run",
-    "Kotlin.MainKt (1).executor": "Run",
-    "Kotlin.MainKt.executor": "Run",
-    "Kotlin.TestJavaParserKt.executor": "Run",
-    "RunOnceActivity.OpenProjectViewOnStart": "true",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "soot-parse-smtlib",
-    "ignore.virus.scanning.warn.message": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "D:/learning/jconcolic",
-    "settings.editor.selected.configurable": "project.kotlinCompiler"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.Build test_native_build.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.test_native_build [linkNative].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.test_native_build [nativeBinaries].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.构建 test_native_build.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin 脚本(测试版).build.gradle.kts.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.MainKt (1).executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.MainKt.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.TestJavaParserKt.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.OpenProjectViewOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;soot-parse-smtlib&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;D:/learning/jconcolic&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;project.kotlinCompiler&quot;
   }
-}]]></component>
+}</component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="D:\IdeaProjects\test_native_build" />
@@ -163,6 +168,7 @@
     <configuration name="MainKt" type="JetRunConfigurationType" temporary="true">
       <option name="MAIN_CLASS_NAME" value="MainKt" />
       <module name="IdeaProjects.test_native_build.main" />
+      <option name="PROGRAM_PARAMETERS" value="C:\Users\yyzha\Desktop\lucene-9.9.1\lucene-9.9.1\modules\lucene-analysis-icu-9.9.1.jar" />
       <shortenClasspath name="NONE" />
       <method v="2">
         <option name="Make" enabled="true" />
@@ -430,7 +436,23 @@
       <option name="project" value="LOCAL" />
       <updated>1709788390937</updated>
     </task>
-    <option name="localTasksCounter" value="29" />
+    <task id="LOCAL-00029" summary="fix: string concat something **as a string**">
+      <option name="closed" value="true" />
+      <created>1709788859905</created>
+      <option name="number" value="00029" />
+      <option name="presentableId" value="LOCAL-00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1709788859905</updated>
+    </task>
+    <task id="LOCAL-00030" summary="fix: string concat something **as a string** and add: instanceof expression">
+      <option name="closed" value="true" />
+      <created>1709788940426</created>
+      <option name="number" value="00030" />
+      <option name="presentableId" value="LOCAL-00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1709788940426</updated>
+    </task>
+    <option name="localTasksCounter" value="31" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -444,7 +466,7 @@
                   <entry key="branch">
                     <value>
                       <list>
-                        <option value="java-parser" />
+                        <option value="soot-parse-smtlib" />
                       </list>
                     </value>
                   </entry>
@@ -457,9 +479,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="." />
-    <MESSAGE value="some to-text updates" />
-    <MESSAGE value="delete no-use funcs for this project" />
     <MESSAGE value="partially add smtlib things" />
     <MESSAGE value="add support for some java bytecode transform, to be continued" />
     <MESSAGE value="add support for some java bytecode transform to pass in one case" />
@@ -481,8 +500,11 @@
     <MESSAGE value="fix: partial fix the upcast coerce conditions" />
     <MESSAGE value="add: make cast-able judgement as an independent function" />
     <MESSAGE value="add: byte (java) type temporarily as int (smt) type" />
+    <MESSAGE value="add: instanceof expression as cast-able judgement" />
+    <MESSAGE value="fix: string concat something **as a string** and as" />
     <MESSAGE value="fix: string concat something **as a string**" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: string concat something **as a string**" />
+    <MESSAGE value="fix: string concat something **as a string** and add: instanceof expression" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: string concat something **as a string** and add: instanceof expression" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

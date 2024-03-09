@@ -7,7 +7,7 @@ import java.util.*
 
 fun main(args: Array<String>) {
 
-    for (pathsOfFunc in slice("C:\\Users\\yyzha\\Desktop\\lucene-9.9.1\\lucene-9.9.1\\modules\\lucene-analysis-icu-9.9.1.jar")) { // write to .path files
+    for (pathsOfFunc in slice(args[0])) { // write to .path files
         val dir = File("paths", "method-" + pathsOfFunc.key.replace("<", "《").replace(">", "》"))
         if (dir.isDirectory() || dir.mkdir()) {
             pathsOfFunc.value.forEachIndexed { index, slicer ->

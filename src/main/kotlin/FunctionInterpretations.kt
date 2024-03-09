@@ -1,5 +1,4 @@
 import soot.ArrayType
-import soot.IntType
 import soot.RefType
 import soot.Scene
 import soot.Type
@@ -14,9 +13,10 @@ class Atom(private val value: Any): SExpression {
     }
 
     override fun toStringWithTransformedName(t: (Any) -> String): String {
-        return t(value)
+        return if (value is String) value else t(value)
     }
 }
+
 class SList(vararg exps: Any): SExpression {
     private val value = exps.toList().map { if (it is SExpression) it else Atom(it) }
     override fun toString(): String {
@@ -25,6 +25,16 @@ class SList(vararg exps: Any): SExpression {
 
     override fun toStringWithTransformedName(t: (Any) -> String): String {
         return "(${value.joinToString(" ") { it.toStringWithTransformedName(t) }})"
+    }
+}
+
+class TopLevel(private vararg val commands: SList): SExpression {
+    override fun toString(): String {
+        return commands.joinToString("\n")
+    }
+
+    override fun toStringWithTransformedName(t: (Any) -> String): String {
+        return commands.joinToString("\n") { it.toStringWithTransformedName(t) }
     }
 }
 
@@ -104,7 +114,7 @@ const val substring2_sig = "<java.lang.String: java.lang.String substring(int,in
 //<java.lang.String: java.lang.String toLowerCase()>
 //<java.lang.String: java.lang.String toUpperCase(java.util.Locale)>
 //<java.lang.String: java.lang.String toUpperCase()>
-//<java.lang.String: java.lang.String trim()>
+const val trim_sig = "<java.lang.String: java.lang.String trim()>"
 //<java.lang.String: java.lang.String toString()>
 //<java.lang.String: char[] toCharArray()>
 //<java.lang.String: java.lang.String format(java.lang.String,java.lang.Object[])>
@@ -123,7 +133,7 @@ const val substring2_sig = "<java.lang.String: java.lang.String substring(int,in
 //<java.lang.String: java.lang.String intern()>
 //<java.lang.String: int compareTo(java.lang.Object)>
 
-fun predefineFunctions(): Map<String, SExpression> {
+fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): List<SExpression> {
     val funcs = mutableMapOf<String, SExpression>()
 
     funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
@@ -186,6 +196,16 @@ fun predefineFunctions(): Map<String, SExpression> {
     )
 
     return funcs
+    return functions.map { (name, types) ->
+        funcs[name] ?: SList(
+            "declare-fun",
+            name,
+            SList(
+                *types.first.toTypedArray()
+            ),
+            types.second
+        )
+    }
 }
 
 fun preconditionOfFunctions(name: String, args: List<String>): SList? {
