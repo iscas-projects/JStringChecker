@@ -195,7 +195,156 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
         )
     )
 
-    return funcs
+    // refer to but later changed from:
+    // https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/doc/trim.smt#L4
+    // or https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/src/main/edu/ucsb/cs/vlab/translate/smtlib/from/z3str3/Z3Translator.java#L265
+    funcs["trim/${trim_sig.hashCode()}"] = TopLevel(
+            SList(
+                "define-fun",
+                "is-whitespace",
+                SList(
+                    SList(
+                        "char",
+                        "String"
+                    )
+                ),
+                "Bool",
+                SList(
+                    "<",
+                    SList(
+                        "str.to_code",
+                        "char"
+                    ),
+                    "33" // ASCII space
+                )
+            ),
+
+    SList(
+        "define-fun-rec",
+        "trim-left",  // TODO: temporarily only deal with ASCII characters
+                        // also, use the recursive version might cause performance issues
+        SList(
+            SList(
+                "s",
+                "String"
+            )
+        ),
+        "String",
+        SList(
+            "ite",
+            SList(
+                "=",
+                "s",
+                "\"\""
+            ),
+    "\"\"",
+    SList(
+        "ite",
+        SList(
+            "is-whitespace",
+            SList(
+                "str.substr",
+                "s",
+                "0",
+                "1"
+            )
+        ),
+    SList(
+        "trim-left",
+        SList(
+            "str.substr",
+            "s",
+            "1",
+            SList(
+                "-",
+                SList(
+                    "str.len",
+                    "s"
+                ),
+                "1"
+            )
+        )
+    ),
+    "s"
+    )
+        )
+    ),
+    SList(
+        "define-fun-rec",
+        "trim-right",
+        SList(
+            SList(
+                "s",
+                "String"
+            )
+        ),
+        "String",
+        SList(
+            "ite",
+            SList(
+                "=",
+                "s",
+                "\"\""
+            ),
+    "\"\"",
+    SList(
+        "ite",
+        SList(
+            "is-whitespace",
+            SList(
+                "str.substr",
+                "s",
+                SList(
+                    "-",
+                    SList(
+                        "str.len",
+                        "s"
+                    ),
+                    "1"
+                ),
+                "1"
+            )
+        ),
+    SList(
+        "trim-right",
+        SList(
+            "str.substr",
+            "s",
+            "0",
+            SList(
+                "-",
+                SList(
+                    "str.len",
+                    "s"
+                ),
+                "1"
+            )
+        )
+    ),
+    "s"
+    )
+        )
+    ),
+    SList(
+        "define-fun",
+        "trim/${trim_sig.hashCode()}",
+        SList(
+            SList(
+                "s",
+                "String"
+            )
+        ),
+        "String",
+        SList(
+            "trim-right",
+            SList(
+                "trim-left",
+                "s"
+            )
+        )
+    )
+    )
+
     return functions.map { (name, types) ->
         funcs[name] ?: SList(
             "declare-fun",
