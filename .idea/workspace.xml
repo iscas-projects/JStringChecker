@@ -4,12 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: InstanceOfExpr semantics should also return true when two types are the same">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
-    </list>
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: produce the paths according to negation of inline pre-conditions as well" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -492,7 +487,23 @@
       <option name="project" value="LOCAL" />
       <updated>1710035378154</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="refactor: extract &quot;assert&quot; identifier to whole path inspection time">
+      <option name="closed" value="true" />
+      <created>1710041141371</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1710041141371</updated>
+    </task>
+    <task id="LOCAL-00037" summary="add: produce the paths according to negation of inline pre-conditions as well">
+      <option name="closed" value="true" />
+      <created>1710041239470</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1710041239470</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -519,8 +530,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add support for simple cast from int to boolean and array" />
-    <MESSAGE value="add simple SSA for mutable variable re-definition" />
     <MESSAGE value="fix bugs in path finding" />
     <MESSAGE value="add support for newExpr, coerce to higher type (for null type)" />
     <MESSAGE value="add support for newExpr, coerce to higher type" />
@@ -544,7 +553,9 @@
     <MESSAGE value="add: String.trim() function definition for ASCII strings, recursive with additional helper functions" />
     <MESSAGE value="reformat" />
     <MESSAGE value="fix: InstanceOfExpr semantics should also return true when two types are the same" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: InstanceOfExpr semantics should also return true when two types are the same" />
+    <MESSAGE value="refactor: extract &quot;assert&quot; identifier to whole path inspection time" />
+    <MESSAGE value="add: produce the paths according to negation of inline pre-conditions as well" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: produce the paths according to negation of inline pre-conditions as well" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -558,7 +569,7 @@
         <line-breakpoint type="kotlin-line">
           <condition expression="b.method.name.toString().contains(&quot;getBreakI&quot;) &amp;&amp; b.method.declaringClass.name.contains(&quot;Composite&quot;)" language="kotlin" mode="CODE_FRAGMENT" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
-          <line>39</line>
+          <line>43</line>
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">

@@ -4,7 +4,7 @@ import soot.jimple.internal.JIdentityStmt
 import soot.util.Numberable
 import kotlin.math.floor
 
-fun Slicer.smtExpand(): String {
+fun Slicer.smtExpand(): Pair<String, List<String>> {
     // the symbol that are defined and referred in the bytecode, should change to SSA form
     val publicSymbols = mutableMapOf<String, Any>()
     // search according to the value its corresponding public symbol
@@ -153,7 +153,7 @@ fun Slicer.smtExpand(): String {
                 val funcName = value.method.name + "/" + value.method.signature.hashCode()
 
                 val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
-                val checkBaseNullity = "(= ${transformValue(value.base)} ${coerce(NullConstant.v(), listOf(value.base.type))})"
+                val checkBaseNullity = "(not (= ${transformValue(value.base)} ${coerce(NullConstant.v(), listOf(value.base.type))}))"
                 pre = if (condition != null) {
                     // TODO: check the statement if it includes essential checks, including function exception and null check
                     // and plug to some of exprs above
@@ -377,7 +377,15 @@ fun Slicer.smtExpand(): String {
         }
         pre to (prog + post)
     }
-    val body = lines.joinToString("\n") { (pre, prog) -> "(assert $pre)\n$prog" }
+
+    // statement series reverting the last pre-condition
+    val deviants = lines.indices.map { lines.subList(0, it + 1) } // every sublist starting at 0
+        .filter { it.last().first.isNotEmpty() } // with last element containing a pre-condition
+        .map { statementsWithOptionalPreconditions ->
+            statementsWithOptionalPreconditions.dropLast(1).joinToString("\n") { (pre, prog) -> pre + prog } + "\n" +
+                    statementsWithOptionalPreconditions.last().first.let { "(assert (not ${it}))" }
+        }
+    val body = lines.joinToString("\n") { (pre, prog) -> (if (pre.isNotEmpty()) "(assert $pre)" else "") + prog }
 
     // enforce the eval order of parsing functions before adding sorts
     var header = predefineFunctions(functions).joinToString("") { sExpression ->
@@ -405,5 +413,5 @@ fun Slicer.smtExpand(): String {
                 header
     val trailer =
         "\n(check-sat)\n(get-model)\n(get-unsat-core)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
-    return header + body + trailer
+    return (header + body + trailer) to deviants.map { header + it + trailer }
 }

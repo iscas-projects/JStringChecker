@@ -11,7 +11,11 @@ fun main(args: Array<String>) {
         val dir = File("paths", "method-" + pathsOfFunc.key.replace("<", "《").replace(">", "》"))
         if (dir.isDirectory() || dir.mkdir()) {
             pathsOfFunc.value.forEachIndexed { index, slicer ->
-                File(dir, "$index.path").writeText(compatibleSmtlibTransformer(slicer))
+                val (normal, deviants) = compatibleSmtlibTransformer(slicer)
+                File(dir, "$index.path").writeText(normal)
+                deviants.forEachIndexed { num, text ->
+                    File(dir, "$index-deviant-$num.path").writeText(text)
+                }
             }
         }
     }
