@@ -32,6 +32,8 @@ fun Slicer.smtExpand(): String {
             VoidType.v() -> return "void"
             CharType.v() -> return "Int"
             Scene.v().getSootClass("java.lang.String") -> return "String"
+            Scene.v().getSootClass("java.lang.StringBuilder") -> return "String"
+            Scene.v().getSootClass("java.lang.StringBuffer") -> return "String"
             ArrayType.v(CharType.v(), 1) -> return "(Array Int Int)" // to be added
             ArrayType.v(RefType.v("java.lang.String"), 1) -> return "(Array Int String)"
             BooleanType.v() -> return "Bool"
@@ -70,7 +72,7 @@ fun Slicer.smtExpand(): String {
             // TODO: make sure it is more clean, distinguish the one-type usage above and the merge-to-super usage below
             if (typeClasses.contains(BooleanType.v()) && valueToBeCoerced.type is IntType)
                 return "(ite (= 1 ${transformValue(valueToBeCoerced)}) true false)" // special downcast
-            if (typeClasses.size == 1 && isCastable(valueToBeCoerced.type, typeClasses[0] as Type)
+            if (typeClasses.size == 1 && isNotSameTypeButCastable(valueToBeCoerced.type, typeClasses[0] as Type)
             ) { // only upcast for now
                 val typeToCoerce = typeClasses[0]
                 val castFuncName = "cast-from-${
@@ -198,7 +200,11 @@ fun Slicer.smtExpand(): String {
             }
 
             is InstanceOfExpr -> {
-                isCastable(value.op.type, value.checkType, true).toString() // TODO: temporarily can't deal
+                (value.op.type == value.checkType || isNotSameTypeButCastable(
+                    value.op.type,
+                    value.checkType,
+                    true
+                )).toString() // TODO: temporarily can't deal
             }
 
             is LengthExpr -> {

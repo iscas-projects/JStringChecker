@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="refactor: offload predefined function selection to FunctionInterpretations.kt">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="reformat">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -458,7 +459,31 @@
       <option name="project" value="LOCAL" />
       <updated>1709952516173</updated>
     </task>
-    <option name="localTasksCounter" value="32" />
+    <task id="LOCAL-00032" summary="refactor: offload predefined function selection to FunctionInterpretations.kt">
+      <option name="closed" value="true" />
+      <created>1709954001428</created>
+      <option name="number" value="00032" />
+      <option name="presentableId" value="LOCAL-00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1709954001428</updated>
+    </task>
+    <task id="LOCAL-00033" summary="add: String.trim() function definition for ASCII strings, recursive with additional helper functions">
+      <option name="closed" value="true" />
+      <created>1709954056546</created>
+      <option name="number" value="00033" />
+      <option name="presentableId" value="LOCAL-00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1709954056546</updated>
+    </task>
+    <task id="LOCAL-00034" summary="reformat">
+      <option name="closed" value="true" />
+      <created>1709954200759</created>
+      <option name="number" value="00034" />
+      <option name="presentableId" value="LOCAL-00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1709954200759</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -485,8 +510,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add support for some java bytecode transform, to be continued" />
-    <MESSAGE value="add support for some java bytecode transform to pass in one case" />
     <MESSAGE value="add support for simple cast from int to boolean" />
     <MESSAGE value="add support for simple cast from int to boolean and array" />
     <MESSAGE value="add simple SSA for mutable variable re-definition" />
@@ -510,7 +533,9 @@
     <MESSAGE value="fix: string concat something **as a string**" />
     <MESSAGE value="fix: string concat something **as a string** and add: instanceof expression" />
     <MESSAGE value="refactor: offload predefined function selection to FunctionInterpretations.kt" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: offload predefined function selection to FunctionInterpretations.kt" />
+    <MESSAGE value="add: String.trim() function definition for ASCII strings, recursive with additional helper functions" />
+    <MESSAGE value="reformat" />
+    <option name="LAST_COMMIT_MESSAGE" value="reformat" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -530,12 +555,12 @@
         <line-breakpoint enabled="true" type="kotlin-line">
           <condition expression="valueToBeCoerced.type.toString().contains(&quot;String[]&quot;)" language="kotlin" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>70</line>
+          <line>72</line>
           <option name="timeStamp" value="32" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>176</line>
+          <line>178</line>
           <properties>
             <option name="lambda-ordinal" value="-1" />
           </properties>

@@ -198,6 +198,10 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
     // refer to but later changed from:
     // https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/doc/trim.smt#L4
     // or https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/src/main/edu/ucsb/cs/vlab/translate/smtlib/from/z3str3/Z3Translator.java#L265
+    // to approximate standard java:
+    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/String.java
+    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringUTF16.java#L75
+    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringLatin1.java#L856
     funcs["trim/${trim_sig.hashCode()}"] = TopLevel(
         SList(
             "define-fun",
@@ -392,8 +396,8 @@ fun preconditionOfFunctions(name: String, args: List<String>): SList? {
     }
 }
 
-fun isCastable(subType: Type, topType: Type, strict: Boolean = false): Boolean =
+fun isNotSameTypeButCastable(subType: Type, topType: Type, strict: Boolean = false): Boolean =
     (subType is RefType && topType is RefType && subType.merge(topType, Scene.v()) != subType) || // true subtype
             (topType == RefType.v("java.lang.String") && !strict) || // xxx.toString() method
-            (topType is ArrayType && subType is ArrayType && isCastable(subType.baseType, topType.baseType)) || // array of subtype
+            (topType is ArrayType && subType is ArrayType && isNotSameTypeButCastable(subType.baseType, topType.baseType)) || // array of subtype
             (topType == RefType.v("java.util.Collection") && subType.toString().contains("(List|Array|Map)".toRegex())) // collections
