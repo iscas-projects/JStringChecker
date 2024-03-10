@@ -27,8 +27,7 @@ fun slice(classPath: String): HashMap<String, List<Slicer>> {
     Options.v().set_prepend_classpath(true)
 
     Options.v().set_src_prec(Options.src_prec_class)
-    //Options.v().set_src_prec(Options.src_prec_apk);
-    //Options.v().set_android_jars(android_jars);
+    //Options.v().set_output_format(Options.output_format_shimple)
     Options.v().set_process_dir(Collections.singletonList(classPath))
     Options.v().set_allow_phantom_refs(true)
     Scene.v().addBasicClass("java.lang.String", SootClass.BODIES)

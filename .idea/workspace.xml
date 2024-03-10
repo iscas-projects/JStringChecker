@@ -4,10 +4,11 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="reformat">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: InstanceOfExpr semantics should also return true when two types are the same">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/Main.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/Main.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -483,7 +484,15 @@
       <option name="project" value="LOCAL" />
       <updated>1709954200759</updated>
     </task>
-    <option name="localTasksCounter" value="35" />
+    <task id="LOCAL-00035" summary="fix: InstanceOfExpr semantics should also return true when two types are the same">
+      <option name="closed" value="true" />
+      <created>1710035378154</created>
+      <option name="number" value="00035" />
+      <option name="presentableId" value="LOCAL-00035" />
+      <option name="project" value="LOCAL" />
+      <updated>1710035378154</updated>
+    </task>
+    <option name="localTasksCounter" value="36" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -510,7 +519,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add support for simple cast from int to boolean" />
     <MESSAGE value="add support for simple cast from int to boolean and array" />
     <MESSAGE value="add simple SSA for mutable variable re-definition" />
     <MESSAGE value="fix bugs in path finding" />
@@ -535,7 +543,8 @@
     <MESSAGE value="refactor: offload predefined function selection to FunctionInterpretations.kt" />
     <MESSAGE value="add: String.trim() function definition for ASCII strings, recursive with additional helper functions" />
     <MESSAGE value="reformat" />
-    <option name="LAST_COMMIT_MESSAGE" value="reformat" />
+    <MESSAGE value="fix: InstanceOfExpr semantics should also return true when two types are the same" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: InstanceOfExpr semantics should also return true when two types are the same" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -549,7 +558,7 @@
         <line-breakpoint type="kotlin-line">
           <condition expression="b.method.name.toString().contains(&quot;getBreakI&quot;) &amp;&amp; b.method.declaringClass.name.contains(&quot;Composite&quot;)" language="kotlin" mode="CODE_FRAGMENT" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/Main.kt</url>
-          <line>40</line>
+          <line>39</line>
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
@@ -560,7 +569,7 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>178</line>
+          <line>185</line>
           <properties>
             <option name="lambda-ordinal" value="-1" />
           </properties>

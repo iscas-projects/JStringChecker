@@ -153,7 +153,14 @@ fun Slicer.smtExpand(): String {
                 val funcName = value.method.name + "/" + value.method.signature.hashCode()
 
                 val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
-                if (condition != null) pre = condition.toString() + "\n"
+                val checkBaseNullity = "(= ${transformValue(value.base)} ${coerce(NullConstant.v(), listOf(value.base.type))})"
+                pre = if (condition != null) {
+                    // TODO: check the statement if it includes essential checks, including function exception and null check
+                    // and plug to some of exprs above
+                    "(and $checkBaseNullity $condition)"
+                } else {
+                    checkBaseNullity
+                }
                 registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
                     (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType)
 
@@ -361,15 +368,16 @@ fun Slicer.smtExpand(): String {
     }
 
     // entry point
-    val body = this.getPath().joinToString("\n") { entry ->
-        pre = ""
+    val lines = this.getPath().map { entry ->
+        pre = "" // the statement to assert, e.g. "(isNull myObject)", instead of a complete assert sentence
         post = ""
         val prog = when (entry) {
             is Condition -> "(assert ${conditionExpander(entry)}) ; $entry"
             is Statement -> "${transformStmt(entry.stmt)} ; $entry"
         }
-        pre + prog + post
+        pre to (prog + post)
     }
+    val body = lines.joinToString("\n") { (pre, prog) -> "(assert $pre)\n$prog" }
 
     // enforce the eval order of parsing functions before adding sorts
     var header = predefineFunctions(functions).joinToString("") { sExpression ->

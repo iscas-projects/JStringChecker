@@ -368,27 +368,24 @@ fun preconditionOfFunctions(name: String, args: List<String>): SList? {
             val begin = args[1]
             val end = args[2]
             SList(
-                "assert",
+                "and",
                 SList(
-                    "and",
+                    ">=",
+                    begin,
+                    "0"
+                ),
+                SList(
+                    ">=",
                     SList(
-                        ">=",
-                        begin,
-                        "0"
+                        "str.len",
+                        s
                     ),
-                    SList(
-                        ">=",
-                        SList(
-                            "str.len",
-                            s
-                        ),
-                        end
-                    ),
-                    SList(
-                        ">=",
-                        end,
-                        begin
-                    )
+                    end
+                ),
+                SList(
+                    ">=",
+                    end,
+                    begin
                 )
             )
         }
