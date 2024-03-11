@@ -382,10 +382,11 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
     val deviants = lines.indices.map { lines.subList(0, it + 1) } // every sublist starting at 0
         .filter { it.last().first.isNotEmpty() } // with last element containing a pre-condition
         .map { statementsWithOptionalPreconditions ->
-            statementsWithOptionalPreconditions.dropLast(1).joinToString("\n") { (pre, prog) -> pre + prog } + "\n" +
+            statementsWithOptionalPreconditions.dropLast(1)
+                .joinToString("\n") { (pre, prog) -> (if (pre.isNotEmpty()) "(assert $pre)\n" else "") + prog } + "\n" +
                     statementsWithOptionalPreconditions.last().first.let { "(assert (not ${it}))" }
         }
-    val body = lines.joinToString("\n") { (pre, prog) -> (if (pre.isNotEmpty()) "(assert $pre)" else "") + prog }
+    val body = lines.joinToString("\n") { (pre, prog) -> (if (pre.isNotEmpty()) "(assert $pre)\n" else "") + prog }
 
     // enforce the eval order of parsing functions before adding sorts
     var header = predefineFunctions(functions).joinToString("") { sExpression ->
@@ -412,6 +413,6 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                 else "") +
                 header
     val trailer =
-        "\n(check-sat)\n(get-model)\n(get-unsat-core)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
+        "\n(check-sat)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return (header + body + trailer) to deviants.map { header + it + trailer }
 }
