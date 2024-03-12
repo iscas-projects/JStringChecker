@@ -25,7 +25,7 @@ class SList(vararg exps: Any): SExpression {
     }
 }
 
-class TopLevel(private vararg val commands: SList): SExpression {
+class TopLevel(private vararg val commands: SExpression): SExpression {
     override fun toString(): String {
         return commands.joinToString("\n")
     }
@@ -394,17 +394,13 @@ fun preconditionOfFunctions(name: String, args: List<String>): SExpression? {
 // TODO: remove soot dependency in this file at best effort
 // post condition might produce new constants as some of the objects might be re-assigned, which cannot be predicted,
 // so the function needs to know how to produce one by applying `getNewName` to one of the args
-inline fun postconditionOfFunctions(funcName: String, args: List<Value>, argNames: List<String>, getNewName: (Value) -> String): SExpression? {
+inline fun postconditionOfFunctions(funcName: String, args: List<Value>, getName: (Value) -> String, addReDeclarationOf: (Value) -> String): SExpression? {
     return when (funcName) {
         "next/${next_sig.hashCode()}" -> {
             val iteratorObject = args[0]
-            val iteratorName = argNames[0]
+            val iteratorName = getName(iteratorObject)
             TopLevel(
-                SList(
-                    "declare-const",
-                    getNewName(iteratorObject),
-                    iteratorObject.type
-                ),
+                Atom(addReDeclarationOf(iteratorObject))
 //                SList(
 //                    "assert"
 //                )

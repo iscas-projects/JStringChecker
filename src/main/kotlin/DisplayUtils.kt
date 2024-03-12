@@ -171,9 +171,8 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                     post = postconditionOfFunctions(
                         funcName.dropWhile { it != '_' }.drop(1), // trim interface name
                         (listOf(value.base) + value.args),
-                        (listOf(value.base) + value.args).map { transformValue(it) },
-                        ::transformDefinitionName
-                    )?.toStringWithTransformedName(::transformName) ?: ""
+                        ::transformValue
+                    ) { v -> transformDefine(v.type, v) } ?.toStringWithTransformedName(::transformName) ?: ""
 
                     ret
                 }
@@ -193,14 +192,8 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                     } else {
                         checkBaseNullity
                     }
-//
-//                // TODO: should refer to transformDefine here, later refactor for a class to gather all these transforms
-//                post = postconditionOfFunctions(
-//                    funcName,
-//                    (listOf(value.base) + value.args),
-//                    argNames,
-//                    ::transformDefinitionName
-//                ) ?.toString() ?: ""
+
+                // TODO: add post condition check here
 
                     registerFunctionAndUpcastArguments(
                         funcName, (listOf(value.base) + value.args),

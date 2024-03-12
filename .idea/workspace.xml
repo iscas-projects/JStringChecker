@@ -4,9 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="refactor: use an inner class as a wrapper of methods (to let the methods get reach to each other later)">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: batch syntactic error detection script">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -538,7 +539,23 @@
       <option name="project" value="LOCAL" />
       <updated>1710221130249</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="refactor: merge the `coerce` and `coerceInitializer` local functions to be a object method">
+      <option name="closed" value="true" />
+      <created>1710225958744</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1710225958744</updated>
+    </task>
+    <task id="LOCAL-00043" summary="add: batch syntactic error detection script">
+      <option name="closed" value="true" />
+      <created>1710227419512</created>
+      <option name="number" value="00043" />
+      <option name="presentableId" value="LOCAL-00043" />
+      <option name="project" value="LOCAL" />
+      <updated>1710227419512</updated>
+    </task>
+    <option name="localTasksCounter" value="44" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -565,8 +582,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="temporarily finish grammar fix and switch to semantic (method interpretation) work" />
-    <MESSAGE value="refactor: delete non-smt-related functions" />
     <MESSAGE value="add: definition system, pre- and post- conditions, minor changes" />
     <MESSAGE value="add: update base instances instead of adding new variables when fields and array members are updated (e.g. a[1] = 2)" />
     <MESSAGE value="add: badly-written upcast stuff for invocation and field-ref arguments" />
@@ -590,7 +605,9 @@
     <MESSAGE value="fix: re-add the (assign *) structure to preconditions of deviant paths" />
     <MESSAGE value="add: post condition for Iterator.next() interface method" />
     <MESSAGE value="refactor: use an inner class as a wrapper of methods (to let the methods get reach to each other later)" />
-    <option name="LAST_COMMIT_MESSAGE" value="refactor: use an inner class as a wrapper of methods (to let the methods get reach to each other later)" />
+    <MESSAGE value="refactor: merge the `coerce` and `coerceInitializer` local functions to be a object method" />
+    <MESSAGE value="add: batch syntactic error detection script" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: batch syntactic error detection script" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -609,16 +626,11 @@
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>255</line>
+          <line>227</line>
           <properties>
             <option name="lambda-ordinal" value="-1" />
           </properties>
           <option name="timeStamp" value="37" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt</url>
-          <line>404</line>
-          <option name="timeStamp" value="38" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>
