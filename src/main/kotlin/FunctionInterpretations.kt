@@ -1,7 +1,4 @@
-import soot.ArrayType
-import soot.RefType
-import soot.Scene
-import soot.Type
+import soot.*
 
 sealed interface SExpression {
     fun toStringWithTransformedName(t: (Any) -> String): String
@@ -132,6 +129,7 @@ const val trim_sig = "<java.lang.String: java.lang.String trim()>"
 //<java.lang.String: java.lang.String valueOf(double)>
 //<java.lang.String: java.lang.String intern()>
 //<java.lang.String: int compareTo(java.lang.Object)>
+const val next_sig = "<java.util.Iterator: java.lang.Object next()>"
 
 fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): List<SExpression> {
     val funcs = mutableMapOf<String, SExpression>()
@@ -361,7 +359,7 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
     }
 }
 
-fun preconditionOfFunctions(name: String, args: List<String>): SList? {
+fun preconditionOfFunctions(name: String, args: List<String>): SExpression? {
     return when (name) {
         "substring/${substring2_sig.hashCode()}" -> {
             val s = args[0]
@@ -389,6 +387,30 @@ fun preconditionOfFunctions(name: String, args: List<String>): SList? {
                 )
             )
         }
+        else -> null
+    }
+}
+
+// TODO: remove soot dependency in this file at best effort
+// post condition might produce new constants as some of the objects might be re-assigned, which cannot be predicted,
+// so the function needs to know how to produce one by applying `getNewName` to one of the args
+inline fun postconditionOfFunctions(funcName: String, args: List<Value>, argNames: List<String>, getNewName: (Value) -> String): SExpression? {
+    return when (funcName) {
+        "next/${next_sig.hashCode()}" -> {
+            val iteratorObject = args[0]
+            val iteratorName = argNames[0]
+            TopLevel(
+                SList(
+                    "declare-const",
+                    getNewName(iteratorObject),
+                    iteratorObject.type
+                ),
+//                SList(
+//                    "assert"
+//                )
+            )
+        }
+
         else -> null
     }
 }

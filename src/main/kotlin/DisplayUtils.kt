@@ -63,7 +63,7 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
     }
 
     var pre: String
-    var post: String
+    var post = ""
 
     fun transformValue(value: Value): String {
         // compromise to Kotlin's not allowing local function mutual recursion
@@ -145,22 +145,45 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                     value.method.name
                 }/${value.method.signature.hashCode()}"
 
-                registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
+                // enforce eval order
+                val ret = registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
                     (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType)
+
+                // TODO: should refer to transformDefine here, later refactor for a class to gather all these transforms
+                post = postconditionOfFunctions(
+                    funcName.dropWhile { it != '_' }.drop(1), // trim interface name
+                    (listOf(value.base) + value.args),
+                    (listOf(value.base) + value.args).map { transformValue(it) },
+                    ::transformDefinitionName
+                ) ?.toStringWithTransformedName(::transformName) ?: ""
+
+                ret
             }
 
             is InstanceInvokeExpr -> { // treat virtual and special the same
                 val funcName = value.method.name + "/" + value.method.signature.hashCode()
 
-                val condition = preconditionOfFunctions(funcName, (listOf(value.base) + value.args).map { transformValue(it) })
-                val checkBaseNullity = "(not (= ${transformValue(value.base)} ${coerce(NullConstant.v(), listOf(value.base.type))}))"
-                pre = if (condition != null) {
+                val argNames = (listOf(value.base) + value.args).map { transformValue(it) }
+                val preCond =
+                    preconditionOfFunctions(funcName, argNames)
+                val checkBaseNullity =
+                    "(not (= ${transformValue(value.base)} ${coerce(NullConstant.v(), listOf(value.base.type))}))"
+                pre = if (preCond != null) {
                     // TODO: check the statement if it includes essential checks, including function exception and null check
                     // and plug to some of exprs above
-                    "(and $checkBaseNullity $condition)"
+                    "(and $checkBaseNullity $preCond)"
                 } else {
                     checkBaseNullity
                 }
+//
+//                // TODO: should refer to transformDefine here, later refactor for a class to gather all these transforms
+//                post = postconditionOfFunctions(
+//                    funcName,
+//                    (listOf(value.base) + value.args),
+//                    argNames,
+//                    ::transformDefinitionName
+//                ) ?.toString() ?: ""
+
                 registerFunctionAndUpcastArguments(funcName, (listOf(value.base) + value.args),
                     (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType)
 
@@ -351,9 +374,10 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
 
             // enforce the eval order
             val prog = transformValue(stmt.invokeExpr)
-            post = objectsToReassign.joinToString("") {
-                "\n(declare-const ${transformDefinitionName(it)} ${transformName(it.type)})"
-            }
+            if (post.isEmpty())
+                post = objectsToReassign.joinToString("") {
+                    "\n(declare-const ${transformDefinitionName(it)} ${transformName(it.type)})"
+                }
             ";(assert $prog)"
         } // TODO: more about the side effect
         else -> "!!!!!!${stmt.javaClass} "
@@ -375,6 +399,7 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             is Condition -> "(assert ${conditionExpander(entry)}) ; $entry"
             is Statement -> "${transformStmt(entry.stmt)} ; $entry"
         }
+        post = if (post.isNotEmpty()) "\n" + post else ""
         pre to (prog + post)
     }
 
@@ -413,6 +438,6 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                 else "") +
                 header
     val trailer =
-        "\n(check-sat)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
+        "\n(check-sat)\n(get-model)\n(get-unsat-core)\n; " + functions.toString() + "\n; " + publicSymbols.toString() + "\n; " + reversePublicSymbols.toString()
     return (header + body + trailer) to deviants.map { header + it + trailer }
 }
