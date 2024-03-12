@@ -53,7 +53,7 @@ class TopLevel(private vararg val commands: SExpression): SExpression {
 //<java.lang.String: void <init>(java.lang.StringBuffer)>
 //<java.lang.String: void <init>(java.lang.StringBuilder)>
 //<java.lang.String: void <init>(char[],boolean)>
-//<java.lang.String: int length()>
+const val length_sig = "<java.lang.String: int length()>"
 //<java.lang.String: boolean isEmpty()>
 //<java.lang.String: char charAt(int)>
 //<java.lang.String: int codePointAt(int)>
@@ -79,8 +79,8 @@ class TopLevel(private vararg val commands: SExpression): SExpression {
 const val startsWith_sig = "<java.lang.String: boolean startsWith(java.lang.String)>"
 //<java.lang.String: boolean endsWith(java.lang.String)>
 //<java.lang.String: int hashCode()>
-//<java.lang.String: int indexOf(int)>
-//<java.lang.String: int indexOf(int,int)>
+const val indexOf1_sig = "<java.lang.String: int indexOf(int)>"
+const val indexOf2_sig = "<java.lang.String: int indexOf(int,int)>"
 //<java.lang.String: int indexOfSupplementary(int,int)>
 //<java.lang.String: int lastIndexOf(int)>
 //<java.lang.String: int lastIndexOf(int,int)>
@@ -134,12 +134,22 @@ const val next_sig = "<java.util.Iterator: java.lang.Object next()>"
 fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): List<SExpression> {
     val funcs = mutableMapOf<String, SExpression>()
 
+    funcs["length/${length_sig.hashCode()}"] = SList(
+        "define-fun",
+        "length/${length_sig.hashCode()}",
+        SList(
+            SList("s", "String")
+        ),
+        "Int",
+        SList("str.len", "s")
+    )
+
     funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
         "define-fun",
         "startsWith/${startsWith_sig.hashCode()}",
         SList(
-            SList("s", Scene.v().getSootClass("java.lang.String")),
-            SList("prefix", Scene.v().getSootClass("java.lang.String"))
+            SList("s", "String"),
+            SList("prefix", "String")
         ),
         "Bool",
         SList(
@@ -149,15 +159,54 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
         )
     )
 
+    funcs["indexOf/${indexOf1_sig.hashCode()}"] = SList(
+        "define-fun",
+        "indexOf/${indexOf1_sig.hashCode()}",
+        SList(
+            SList("s", "String"),
+            SList("c", "Int")
+        ),
+        "Int",
+        SList(
+            "str.indexof",
+            "s",
+            SList(
+                "str.from_code",
+                "c"
+            ),
+            "0"
+        )
+    )
+
+    funcs["indexOf/${indexOf2_sig.hashCode()}"] = SList(
+        "define-fun",
+        "indexOf/${indexOf2_sig.hashCode()}",
+        SList(
+            SList("s", "String"),
+            SList("c", "Int"),
+            SList("fromIndex", "Int")
+        ),
+        "Int",
+        SList(
+            "str.indexof",
+            "s",
+            SList(
+                "str.from_code",
+                "c"
+            ),
+            "fromIndex"
+        )
+    )
+
     funcs["substring/${substring2_sig.hashCode()}"] = SList(
         "define-fun",
         "substring/${substring2_sig.hashCode()}",
         SList(
-            SList("s", Scene.v().getSootClass("java.lang.String")),
+            SList("s", "String"),
             SList("begin", "Int"),
             SList("end", "Int")
         ),
-        Scene.v().getSootClass("java.lang.String"),
+        "String",
         SList(
             "str.substr",
             "s",
@@ -174,10 +223,10 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
         "define-fun",
         "substring/${substring1_sig.hashCode()}",
         SList(
-            SList("s", Scene.v().getSootClass("java.lang.String")),
+            SList("s", "String"),
             SList("begin", "Int")
         ),
-        Scene.v().getSootClass("java.lang.String"),
+        "String",
         SList(
             "str.substr",
             "s",
