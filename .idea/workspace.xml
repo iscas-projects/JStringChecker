@@ -4,10 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="fix: re-add the (assign *) structure to preconditions of deviant paths">
+    <list default="true" id="af8a0f01-479c-4506-821d-141e3f1f6767" name="更改" comment="add: post condition for Iterator.next() interface method">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/kotlin/FunctionInterpretations.kt" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -523,7 +522,15 @@
       <option name="project" value="LOCAL" />
       <updated>1710145714020</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="add: post condition for Iterator.next() interface method">
+      <option name="closed" value="true" />
+      <created>1710214656733</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1710214656733</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -550,7 +557,6 @@
     </option>
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="add support for newExpr, coerce to higher type (for null type)" />
     <MESSAGE value="add support for newExpr, coerce to higher type" />
     <MESSAGE value="temporarily finish grammar fix and switch to semantic (method interpretation) work" />
     <MESSAGE value="refactor: delete non-smt-related functions" />
@@ -575,7 +581,8 @@
     <MESSAGE value="refactor: extract &quot;assert&quot; identifier to whole path inspection time" />
     <MESSAGE value="add: produce the paths according to negation of inline pre-conditions as well" />
     <MESSAGE value="fix: re-add the (assign *) structure to preconditions of deviant paths" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: re-add the (assign *) structure to preconditions of deviant paths" />
+    <MESSAGE value="add: post condition for Iterator.next() interface method" />
+    <option name="LAST_COMMIT_MESSAGE" value="add: post condition for Iterator.next() interface method" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -593,14 +600,8 @@
           <option name="timeStamp" value="24" />
         </line-breakpoint>
         <line-breakpoint enabled="true" type="kotlin-line">
-          <condition expression="valueToBeCoerced.type.toString().contains(&quot;String[]&quot;)" language="kotlin" />
           <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>72</line>
-          <option name="timeStamp" value="32" />
-        </line-breakpoint>
-        <line-breakpoint enabled="true" type="kotlin-line">
-          <url>file://$PROJECT_DIR$/src/main/kotlin/DisplayUtils.kt</url>
-          <line>208</line>
+          <line>234</line>
           <properties>
             <option name="lambda-ordinal" value="-1" />
           </properties>
