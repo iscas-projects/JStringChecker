@@ -24,6 +24,7 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
         return name
     }
 
+    // an inner class as a wrapper of some transform functions, mainly to let each function be able to refer to another
     class TransformFunctionBundle {
         var pre = ""
         var post = ""
@@ -66,43 +67,42 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             }
         }
 
-        fun transformValue(value: Value): String {
-            // compromise to Kotlin's not allowing local function mutual recursion
-            fun coerce(valueToBeCoerced: Value, types: List<Numberable>): String {
-                val typeClasses =
-                    types.map { if (it is SootClass) RefType.v(it) else it }.filterNot { it == valueToBeCoerced.type }
-                // TODO: make sure it is more clean, distinguish the one-type usage above and the merge-to-super usage below
-                if (typeClasses.contains(BooleanType.v()) && valueToBeCoerced.type is IntType)
-                    return "(ite (= 1 ${transformValue(valueToBeCoerced)}) true false)" // special downcast
-                if (typeClasses.size == 1 && isNotSameTypeButCastable(valueToBeCoerced.type, typeClasses[0] as Type)
-                ) { // only upcast for now
-                    val typeToCoerce = typeClasses[0]
-                    val castFuncName = "cast-from-${
-                        transformName(valueToBeCoerced.type).replace(
-                            "[( )]".toRegex(),
-                            "__"
-                        ) // deal with compound (array) type
-                    }-to-${
-                        transformName(typeToCoerce).replace("[( )]".toRegex(), "__")
-                    }"
-                    functions.putIfAbsent(
-                        castFuncName,
-                        (listOf(valueToBeCoerced.type)) to typeToCoerce
-                    )
-                    if (valueToBeCoerced.type !is NullType)
-                        return "($castFuncName ${transformValue(valueToBeCoerced)})"
-                    // else go to below
-                }
-                if (valueToBeCoerced.type is NullType) { // default to cast the null's
-                    val ty = typeClasses.first { it !is NullType }
-                    placeholderDeclarations["null-${transformName(ty)}"] = ty
-                    return "null-${transformName(ty)}"
-                }
+        // produce a type cast for the value to the top of types
+        fun coerce(valueToBeCoerced: Value, types: List<Numberable>): String {
+            val typeClasses =
+                types.map { if (it is SootClass) RefType.v(it) else it }.filterNot { it == valueToBeCoerced.type }
 
-
-                return transformValue(valueToBeCoerced)
+            if (typeClasses.contains(BooleanType.v()) && valueToBeCoerced.type is IntType)
+                return "(ite (= 1 ${transformValue(valueToBeCoerced)}) true false)" // special downcast
+            if (typeClasses.size == 1 && isNotSameTypeButCastable(valueToBeCoerced.type, typeClasses[0] as Type)
+            ) { // only upcast for now
+                val typeToCoerce = typeClasses[0]
+                val castFuncName = "cast-from-${
+                    transformName(valueToBeCoerced.type).replace(
+                        "[( )]".toRegex(),
+                        "__"
+                    ) // deal with compound (array) type
+                }-to-${
+                    transformName(typeToCoerce).replace("[( )]".toRegex(), "__")
+                }"
+                functions.putIfAbsent(
+                    castFuncName,
+                    (listOf(valueToBeCoerced.type)) to typeToCoerce
+                )
+                if (valueToBeCoerced.type !is NullType)
+                    return "($castFuncName ${transformValue(valueToBeCoerced)})"
+                // else go to below
+            }
+            if (valueToBeCoerced.type is NullType) { // default to cast the null's
+                val ty = typeClasses.first { it !is NullType }
+                placeholderDeclarations["null-${transformName(ty)}"] = ty
+                return "null-${transformName(ty)}"
             }
 
+            return transformValue(valueToBeCoerced)
+        }
+
+        fun transformValue(value: Value): String {
             // smtlib doesn't know subtypes, so the arguments must be upcast
             fun registerFunctionAndUpcastArguments(
                 funcName: String,
@@ -247,13 +247,6 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                             ) { transformValue(it) }
                         })"
                     }
-//                "${value.method.name}(${
-//                    (value.bootstrapArgs).joinToString(" ") { transformValue(it) }
-//                }, __FENCE__, ${
-//                    value.args.joinToString(
-//                        " "
-//                    ) { transformValueToCppCompat(it) }
-//                })"
                 }
 
                 is InstanceOfExpr -> {
@@ -343,54 +336,34 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             }
         }
 
+        /**
+         * declare a name (`lvalue`) or define a name (`lvalue`)  to be `rvalue`, given the type `ty` of `lvalue` as
+         * it might already be a field of some object and carry a specific type.
+         */
         fun transformDefine(ty: Type, lvalue: Value, rvalue: Value? = null): String = if (rvalue == null) {
             // enforce the eval order to get rid of self-reference
             val literal1 = transformName(ty)
             "(declare-const ${transformDefinitionName(lvalue)} $literal1)"
         } else {
             val literal1 = transformName(ty)
-            val literal2 = transformValue(rvalue)
 
-            fun coercedInitializer(ty: Type, rvalue: Value, initializer: String) = // TODO: merge with the coerce things
-                if (ty is BooleanType && rvalue.type is IntType) // compromise to bytecode's assignment of integers to boolean type variables
-                    "(ite (= 1 $initializer) true false)"
-                else if (ty != rvalue.type) {
-                    // TODO: temporarily use a cast here
-                    val castFuncName = "cast-from-${
-                        transformName(rvalue.type).replace("[( )]".toRegex(), "__")
-                    }-to-${
-                        transformName(ty).replace("[( )]".toRegex(), "__")
-                    }"
-                    functions.putIfAbsent(
-                        castFuncName,
-                        (listOf(rvalue.type)) to ty
-                    )
-                    "($castFuncName $initializer)"
-                } else
-                    initializer
-
+            val initializer = coerce(rvalue, listOf(ty))
             when (lvalue) { // deal with reassigning fields, where we create a new variable not for the field but for the base
                 is ArrayRef -> {
                     val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
                     val newLvalue = transformValue(lvalue)
-                    "$redeclareBase\n(assert (= $newLvalue ${coercedInitializer(ty, rvalue, literal2)}))"
+                    "$redeclareBase\n(assert (= $newLvalue $initializer))"
                 }
 
-                is InstanceFieldRef -> { // TODO: identical branches
+                is InstanceFieldRef -> { // TODO: identical branches but of different type
                     val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
                     val newLvalue = transformValue(lvalue)
-                    "$redeclareBase\n(assert (= $newLvalue ${coercedInitializer(ty, rvalue, literal2)}))"
+                    "$redeclareBase\n(assert (= $newLvalue $initializer))"
                 }
                 //is StaticFieldRef -> "" TODO: make it linked to a class object
                 else -> {
                     assert(lvalue is Local)
-                    "(define-const ${transformDefinitionName(lvalue)} $literal1 ${
-                        coercedInitializer(
-                            ty,
-                            rvalue,
-                            literal2
-                        )
-                    })"
+                    "(define-const ${transformDefinitionName(lvalue)} $literal1 $initializer)"
                 }
             }
         }
