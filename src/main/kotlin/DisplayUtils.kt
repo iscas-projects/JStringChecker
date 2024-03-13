@@ -39,6 +39,8 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                 Scene.v().getSootClass("java.lang.String") -> return "String"
                 Scene.v().getSootClass("java.lang.StringBuilder") -> return "String"
                 Scene.v().getSootClass("java.lang.StringBuffer") -> return "String"
+                Scene.v().getSootClass("java.util.Iterator") -> return "Iterator"
+//                Scene.v().getSootClass("java.util.List") -> return ""
                 ArrayType.v(CharType.v(), 1) -> return "(Array Int Int)" // to be added
                 ArrayType.v(RefType.v("java.lang.String"), 1) -> return "(Array Int String)"
                 BooleanType.v() -> return "Bool"
@@ -95,6 +97,7 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             }
             if (valueToBeCoerced.type is NullType) { // default to cast the null's
                 val ty = typeClasses.first { it !is NullType }
+                // TODO: make sure null not equal to any concrete instance
                 placeholderDeclarations["null-${transformName(ty)}"] = ty
                 return "null-${transformName(ty)}"
             }
@@ -426,9 +429,8 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
         sExpression.toStringWithTransformedName {
             bundle.transformName(it)
         } + "\n"
-    } +
-            placeholderDeclarations.map { (name, ty) -> "(declare-const $name ${bundle.transformName(ty)})\n" }
-                .joinToString("")
+    } + placeholderDeclarations.map { (name, ty) -> "(declare-const $name ${bundle.transformName(ty)})\n" }
+        .joinToString("")
     // if the code uses the class constants, add the SootClasses also as concrete values
     val reflectionClass = if (publicSymbols.values.toString().contains("java.lang.Class"))
         bundle.transformName(Scene.v().getSootClass("java.lang.Class"))
@@ -439,7 +441,8 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                 "(set-option :produce-proofs true) ; enable proof generation\n" + "(set-logic ALL)\n" +
                 publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
                     .joinToString("") { "(declare-sort $it)\n" } +
-                "(declare-sort void)\n" +  // TODO: temporarily use a customized void type
+                "(declare-sort void)\n(declare-sort Iterator)\n" +  // TODO: temporarily use a customized void type
+                        // TODO: move some on-the-fly sort declaration to one place
                 (if (reflectionClass.isNotEmpty())
                     publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
                         .joinToString("") { "(declare-const $it!class $reflectionClass)\n" }

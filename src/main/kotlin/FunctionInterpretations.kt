@@ -463,12 +463,13 @@ inline fun postconditionOfFunctions(funcName: String, args: List<Value>, getName
             val iteratorObject = args[0]
             val iteratorName = getName(iteratorObject)
             TopLevel(
-                Atom(addReDeclarationOf(iteratorObject)) // work around, use `transformDefine()` to add re-declaration
+                Atom(addReDeclarationOf(iteratorObject)), // work around, use `transformDefine()` to add re-declaration
                                                 // for consistency and modularity, so the product is a string like
                                                 // "(declare-const A B)", and can be directly inserted into the TopLevel
                                                 // without SList's adding parentheses
 //                SList(
-//                    "assert"
+//                    "assert",
+//                    SList()
 //                )
             )
         }
