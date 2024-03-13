@@ -26,6 +26,18 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
 
     // an inner class as a wrapper of some transform functions, mainly to let each function be able to refer to another
     class TransformFunctionBundle {
+        /**
+         * global configurations of an SMT file, namely special assertions or sort declarations for now
+         */
+        var header = "(declare-sort void)\n(declare-sort Iterator)\n" // TODO: temporarily use a customized void type
+        // TODO: move some on-the-fly sort declaration to one place
+        var trailor = ""
+        /**
+         * pre-condition and post-condition of a statement, for example, `(assert (not (= this null)))` for some
+         * statement `this.someMethod()` as a pre-condition
+         *
+         * they are inserted into the stream of SMT sentences directly before or after the corresponding sentences
+         */
         var pre = ""
         var post = ""
 
@@ -440,9 +452,7 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                 "(set-option :produce-models true) ; enable model generation\n" +
                 "(set-option :produce-proofs true) ; enable proof generation\n" + "(set-logic ALL)\n" +
                 publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
-                    .joinToString("") { "(declare-sort $it)\n" } +
-                "(declare-sort void)\n(declare-sort Iterator)\n" +  // TODO: temporarily use a customized void type
-                        // TODO: move some on-the-fly sort declaration to one place
+                    .joinToString("") { "(declare-sort $it)\n" } + bundle.header +
                 (if (reflectionClass.isNotEmpty())
                     publicSymbols.keys.filter { publicSymbols[it] is Type || publicSymbols[it] is SootClass }
                         .joinToString("") { "(declare-const $it!class $reflectionClass)\n" }
