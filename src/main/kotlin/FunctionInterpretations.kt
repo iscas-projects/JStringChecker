@@ -129,273 +129,287 @@ const val trim_sig = "<java.lang.String: java.lang.String trim()>"
 //<java.lang.String: java.lang.String valueOf(double)>
 //<java.lang.String: java.lang.String intern()>
 //<java.lang.String: int compareTo(java.lang.Object)>
+
+
 const val next_sig = "<java.util.Iterator: java.lang.Object next()>"
 
 fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): List<SExpression> {
-    val funcs = mutableMapOf<String, SExpression>()
+    fun listOfCasts(): Map<String, SExpression> {
+        val funcs = mutableMapOf<String, SExpression>()
 
-    funcs["length/${length_sig.hashCode()}"] = SList(
-        "define-fun",
-        "length/${length_sig.hashCode()}",
-        SList(
-            SList("s", "String")
-        ),
-        "Int",
-        SList("str.len", "s")
-    )
+        return funcs
+    }
 
-    funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
-        "define-fun",
-        "startsWith/${startsWith_sig.hashCode()}",
-        SList(
-            SList("s", "String"),
-            SList("prefix", "String")
-        ),
-        "Bool",
-        SList(
-            "str.prefixof",
-            "prefix",
-            "s"
-        )
-    )
+    fun listOfStringApis(): Map<String, SExpression> {
+        val funcs = mutableMapOf<String, SExpression>()
 
-    funcs["indexOf/${indexOf1_sig.hashCode()}"] = SList(
-        "define-fun",
-        "indexOf/${indexOf1_sig.hashCode()}",
-        SList(
-            SList("s", "String"),
-            SList("c", "Int")
-        ),
-        "Int",
-        SList(
-            "str.indexof",
-            "s",
-            SList(
-                "str.from_code",
-                "c"
-            ),
-            "0"
-        )
-    )
-
-    funcs["indexOf/${indexOf2_sig.hashCode()}"] = SList(
-        "define-fun",
-        "indexOf/${indexOf2_sig.hashCode()}",
-        SList(
-            SList("s", "String"),
-            SList("c", "Int"),
-            SList("fromIndex", "Int")
-        ),
-        "Int",
-        SList(
-            "str.indexof",
-            "s",
-            SList(
-                "str.from_code",
-                "c"
-            ),
-            "fromIndex"
-        )
-    )
-
-    funcs["substring/${substring2_sig.hashCode()}"] = SList(
-        "define-fun",
-        "substring/${substring2_sig.hashCode()}",
-        SList(
-            SList("s", "String"),
-            SList("begin", "Int"),
-            SList("end", "Int")
-        ),
-        "String",
-        SList(
-            "str.substr",
-            "s",
-            "begin",
-            SList(
-                "-",
-                "end",
-                "begin"
-            )
-        )
-    )
-
-    funcs["substring/${substring1_sig.hashCode()}"] = SList(
-        "define-fun",
-        "substring/${substring1_sig.hashCode()}",
-        SList(
-            SList("s", "String"),
-            SList("begin", "Int")
-        ),
-        "String",
-        SList(
-            "str.substr",
-            "s",
-            "begin",
-            SList(
-                "-",
-                SList(
-                    "str.len",
-                    "s"
-                ),
-                "begin"
-            )
-        )
-    )
-
-    // refer to but later changed from:
-    // https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/doc/trim.smt#L4
-    // or https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/src/main/edu/ucsb/cs/vlab/translate/smtlib/from/z3str3/Z3Translator.java#L265
-    // to approximate standard java:
-    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/String.java
-    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringUTF16.java#L75
-    // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringLatin1.java#L856
-    funcs["trim/${trim_sig.hashCode()}"] = TopLevel(
-        SList(
+        funcs["length/${length_sig.hashCode()}"] = SList(
             "define-fun",
-            "is-whitespace",
+            "length/${length_sig.hashCode()}",
             SList(
-                SList(
-                    "char",
-                    "String"
-                )
+                SList("s", "String")
+            ),
+            "Int",
+            SList("str.len", "s")
+        )
+
+        funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
+            "define-fun",
+            "startsWith/${startsWith_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("prefix", "String")
             ),
             "Bool",
             SList(
-                "<",
-                SList(
-                    "str.to_code",
-                    "char"
-                ),
-                "33" // ASCII space
+                "str.prefixof",
+                "prefix",
+                "s"
             )
-        ),
+        )
 
-        SList(
-            "define-fun-rec",
-            "trim-left",  // TODO: temporarily only deal with ASCII characters
-            // also, use the recursive version might cause performance issues
-            SList(
-                SList(
-                    "s",
-                    "String"
-                )
-            ),
-            "String",
-            SList(
-                "ite",
-                SList(
-                    "=",
-                    "s",
-                    "\"\""
-                ),
-                "\"\"",
-                SList(
-                    "ite",
-                    SList(
-                        "is-whitespace",
-                        SList(
-                            "str.substr",
-                            "s",
-                            "0",
-                            "1"
-                        )
-                    ),
-                    SList(
-                        "trim-left",
-                        SList(
-                            "str.substr",
-                            "s",
-                            "1",
-                            SList(
-                                "-",
-                                SList(
-                                    "str.len",
-                                    "s"
-                                ),
-                                "1"
-                            )
-                        )
-                    ),
-                    "s"
-                )
-            )
-        ),
-        SList(
-            "define-fun-rec",
-            "trim-right",
-            SList(
-                SList(
-                    "s",
-                    "String"
-                )
-            ),
-            "String",
-            SList(
-                "ite",
-                SList(
-                    "=",
-                    "s",
-                    "\"\""
-                ),
-                "\"\"",
-                SList(
-                    "ite",
-                    SList(
-                        "is-whitespace",
-                        SList(
-                            "str.substr",
-                            "s",
-                            SList(
-                                "-",
-                                SList(
-                                    "str.len",
-                                    "s"
-                                ),
-                                "1"
-                            ),
-                            "1"
-                        )
-                    ),
-                    SList(
-                        "trim-right",
-                        SList(
-                            "str.substr",
-                            "s",
-                            "0",
-                            SList(
-                                "-",
-                                SList(
-                                    "str.len",
-                                    "s"
-                                ),
-                                "1"
-                            )
-                        )
-                    ),
-                    "s"
-                )
-            )
-        ),
-        SList(
+        funcs["indexOf/${indexOf1_sig.hashCode()}"] = SList(
             "define-fun",
-            "trim/${trim_sig.hashCode()}",
+            "indexOf/${indexOf1_sig.hashCode()}",
             SList(
+                SList("s", "String"),
+                SList("c", "Int")
+            ),
+            "Int",
+            SList(
+                "str.indexof",
+                "s",
                 SList(
-                    "s",
-                    "String"
-                )
+                    "str.from_code",
+                    "c"
+                ),
+                "0"
+            )
+        )
+
+        funcs["indexOf/${indexOf2_sig.hashCode()}"] = SList(
+            "define-fun",
+            "indexOf/${indexOf2_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("c", "Int"),
+                SList("fromIndex", "Int")
+            ),
+            "Int",
+            SList(
+                "str.indexof",
+                "s",
+                SList(
+                    "str.from_code",
+                    "c"
+                ),
+                "fromIndex"
+            )
+        )
+
+        funcs["substring/${substring2_sig.hashCode()}"] = SList(
+            "define-fun",
+            "substring/${substring2_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("begin", "Int"),
+                SList("end", "Int")
             ),
             "String",
             SList(
-                "trim-right",
+                "str.substr",
+                "s",
+                "begin",
                 SList(
-                    "trim-left",
-                    "s"
+                    "-",
+                    "end",
+                    "begin"
                 )
             )
         )
-    )
 
+        funcs["substring/${substring1_sig.hashCode()}"] = SList(
+            "define-fun",
+            "substring/${substring1_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("begin", "Int")
+            ),
+            "String",
+            SList(
+                "str.substr",
+                "s",
+                "begin",
+                SList(
+                    "-",
+                    SList(
+                        "str.len",
+                        "s"
+                    ),
+                    "begin"
+                )
+            )
+        )
+
+        // refer to but later changed from:
+        // https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/doc/trim.smt#L4
+        // or https://github.com/yanxx297/jpf-symbc/blob/9fa4eff5d25b5d29919a64432422f912dff0a609/src/main/edu/ucsb/cs/vlab/translate/smtlib/from/z3str3/Z3Translator.java#L265
+        // to approximate standard java:
+        // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/String.java
+        // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringUTF16.java#L75
+        // https://github.com/openjdk/jdk/blob/master/src/java.base/share/classes/java/lang/StringLatin1.java#L856
+        funcs["trim/${trim_sig.hashCode()}"] = TopLevel(
+            SList(
+                "define-fun",
+                "is-whitespace",
+                SList(
+                    SList(
+                        "char",
+                        "String"
+                    )
+                ),
+                "Bool",
+                SList(
+                    "<",
+                    SList(
+                        "str.to_code",
+                        "char"
+                    ),
+                    "33" // ASCII space
+                )
+            ),
+
+            SList(
+                "define-fun-rec",
+                "trim-left",  // TODO: temporarily only deal with ASCII characters
+                // also, use the recursive version might cause performance issues
+                SList(
+                    SList(
+                        "s",
+                        "String"
+                    )
+                ),
+                "String",
+                SList(
+                    "ite",
+                    SList(
+                        "=",
+                        "s",
+                        "\"\""
+                    ),
+                    "\"\"",
+                    SList(
+                        "ite",
+                        SList(
+                            "is-whitespace",
+                            SList(
+                                "str.substr",
+                                "s",
+                                "0",
+                                "1"
+                            )
+                        ),
+                        SList(
+                            "trim-left",
+                            SList(
+                                "str.substr",
+                                "s",
+                                "1",
+                                SList(
+                                    "-",
+                                    SList(
+                                        "str.len",
+                                        "s"
+                                    ),
+                                    "1"
+                                )
+                            )
+                        ),
+                        "s"
+                    )
+                )
+            ),
+            SList(
+                "define-fun-rec",
+                "trim-right",
+                SList(
+                    SList(
+                        "s",
+                        "String"
+                    )
+                ),
+                "String",
+                SList(
+                    "ite",
+                    SList(
+                        "=",
+                        "s",
+                        "\"\""
+                    ),
+                    "\"\"",
+                    SList(
+                        "ite",
+                        SList(
+                            "is-whitespace",
+                            SList(
+                                "str.substr",
+                                "s",
+                                SList(
+                                    "-",
+                                    SList(
+                                        "str.len",
+                                        "s"
+                                    ),
+                                    "1"
+                                ),
+                                "1"
+                            )
+                        ),
+                        SList(
+                            "trim-right",
+                            SList(
+                                "str.substr",
+                                "s",
+                                "0",
+                                SList(
+                                    "-",
+                                    SList(
+                                        "str.len",
+                                        "s"
+                                    ),
+                                    "1"
+                                )
+                            )
+                        ),
+                        "s"
+                    )
+                )
+            ),
+            SList(
+                "define-fun",
+                "trim/${trim_sig.hashCode()}",
+                SList(
+                    SList(
+                        "s",
+                        "String"
+                    )
+                ),
+                "String",
+                SList(
+                    "trim-right",
+                    SList(
+                        "trim-left",
+                        "s"
+                    )
+                )
+            )
+        )
+
+        return funcs
+    }
+
+    val funcs = listOfStringApis()
+    // only the used functions of above (as well as their helpers) are included
     return functions.map { (name, types) ->
         funcs[name] ?: SList(
             "declare-fun",
@@ -449,7 +463,10 @@ inline fun postconditionOfFunctions(funcName: String, args: List<Value>, getName
             val iteratorObject = args[0]
             val iteratorName = getName(iteratorObject)
             TopLevel(
-                Atom(addReDeclarationOf(iteratorObject))
+                Atom(addReDeclarationOf(iteratorObject)) // work around, use `transformDefine()` to add re-declaration
+                                                // for consistency and modularity, so the product is a string like
+                                                // "(declare-const A B)", and can be directly inserted into the TopLevel
+                                                // without SList's adding parentheses
 //                SList(
 //                    "assert"
 //                )
