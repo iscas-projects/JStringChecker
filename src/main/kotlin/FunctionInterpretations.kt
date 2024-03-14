@@ -54,7 +54,7 @@ class TopLevel(private vararg val commands: SExpression): SExpression {
 //<java.lang.String: void <init>(java.lang.StringBuilder)>
 //<java.lang.String: void <init>(char[],boolean)>
 const val length_sig = "<java.lang.String: int length()>"
-//<java.lang.String: boolean isEmpty()>
+const val isEmpty_sig = "<java.lang.String: boolean isEmpty()>"
 const val charAt_sig = "<java.lang.String: char charAt(int)>"
 //<java.lang.String: int codePointAt(int)>
 //<java.lang.String: int codePointBefore(int)>
@@ -162,6 +162,20 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
             ),
             "Int",
             SList("str.at", "s", "index")
+        )
+
+        funcs["isEmpty/${isEmpty_sig.hashCode()}"] = SList(
+            "define-fun",
+            "isEmpty/${isEmpty_sig.hashCode()}",
+            SList(
+                SList("s", "String")
+            ),
+            "Int",
+            SList(
+                "=",
+                SList("str.len", "s"),
+                0
+            )
         )
 
         funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
@@ -490,6 +504,26 @@ fun preconditionOfFunctions(name: String, args: List<String>): SExpression? {
                 SList(
                     ">=",
                     end,
+                    begin
+                )
+            )
+        }
+        "substring/${substring1_sig.hashCode()}" -> {
+            val s = args[0]
+            val begin = args[1]
+            SList(
+                "and",
+                SList(
+                    ">=",
+                    begin,
+                    "0"
+                ),
+                SList(
+                    ">=",
+                    SList(
+                        "str.len",
+                        s
+                    ),
                     begin
                 )
             )
