@@ -183,7 +183,6 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
                         (listOf(value.method.declaringClass) + value.method.parameterTypes), value.method.returnType
                     )
 
-                    // TODO: should refer to transformDefine here, later refactor for a class to gather all these transforms
                     post = postconditionOfFunctions(
                         funcName.dropWhile { it != '_' }.drop(1), // trim interface name
                         (listOf(value.base) + value.args),
@@ -357,17 +356,20 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             val literal1 = transformName(ty)
 
             val initializer = coerce(rvalue, listOf(ty))
+            // TODO: refactor below to the pre-condition parts
             when (lvalue) { // deal with reassigning fields, where we create a new variable not for the field but for the base
                 is ArrayRef -> {
                     val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
+                    val nonNullAssertion = "(assert (not (= ${transformValue(lvalue.base)} ${coerce(NullConstant.v(), listOf(lvalue.base.type))})))"
                     val newLvalue = transformValue(lvalue)
-                    "$redeclareBase\n(assert (= $newLvalue $initializer))"
+                    "$redeclareBase\n$nonNullAssertion\n(assert (= $newLvalue $initializer))"
                 }
 
                 is InstanceFieldRef -> { // TODO: identical branches but of different type
                     val redeclareBase = transformDefine(lvalue.base.type, lvalue.base)
+                    val nonNullAssertion = "(assert (not (= ${transformValue(lvalue.base)} ${coerce(NullConstant.v(), listOf(lvalue.base.type))})))"
                     val newLvalue = transformValue(lvalue)
-                    "$redeclareBase\n(assert (= $newLvalue $initializer))"
+                    "$redeclareBase\n$nonNullAssertion\n(assert (= $newLvalue $initializer))"
                 }
                 //is StaticFieldRef -> "" TODO: make it linked to a class object
                 else -> {
