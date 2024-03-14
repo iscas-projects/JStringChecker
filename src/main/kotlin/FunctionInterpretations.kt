@@ -55,7 +55,7 @@ class TopLevel(private vararg val commands: SExpression): SExpression {
 //<java.lang.String: void <init>(char[],boolean)>
 const val length_sig = "<java.lang.String: int length()>"
 //<java.lang.String: boolean isEmpty()>
-//<java.lang.String: char charAt(int)>
+const val charAt_sig = "<java.lang.String: char charAt(int)>"
 //<java.lang.String: int codePointAt(int)>
 //<java.lang.String: int codePointBefore(int)>
 //<java.lang.String: int codePointCount(int,int)>
@@ -85,8 +85,8 @@ const val indexOf2_sig = "<java.lang.String: int indexOf(int,int)>"
 //<java.lang.String: int lastIndexOf(int)>
 //<java.lang.String: int lastIndexOf(int,int)>
 //<java.lang.String: int lastIndexOfSupplementary(int,int)>
-//<java.lang.String: int indexOf(java.lang.String)>
-//<java.lang.String: int indexOf(java.lang.String,int)>
+const val indexOf3_sig = "<java.lang.String: int indexOf(java.lang.String)>"
+const val indexOf4_sig = "<java.lang.String: int indexOf(java.lang.String,int)>"
 //<java.lang.String: int indexOf(char[],int,int,java.lang.String,int)>
 //<java.lang.String: int indexOf(char[],int,int,char[],int,int,int)>
 //<java.lang.String: int lastIndexOf(java.lang.String)>
@@ -153,6 +153,17 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
             SList("str.len", "s")
         )
 
+        funcs["charAt/${charAt_sig.hashCode()}"] = SList(
+            "define-fun",
+            "charAt/${charAt_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("index", "Int")
+            ),
+            "Int",
+            SList("str.at", "s", "index")
+        )
+
         funcs["startsWith/${startsWith_sig.hashCode()}"] = SList(
             "define-fun",
             "startsWith/${startsWith_sig.hashCode()}",
@@ -203,6 +214,39 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
                     "str.from_code",
                     "c"
                 ),
+                "fromIndex"
+            )
+        )
+
+        funcs["indexOf/${indexOf3_sig.hashCode()}"] = SList(
+            "define-fun",
+            "indexOf/${indexOf3_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("subs", "String")
+            ),
+            "Int",
+            SList(
+                "str.indexof",
+                "s",
+                "subs",
+                "0"
+            )
+        )
+
+        funcs["indexOf/${indexOf4_sig.hashCode()}"] = SList(
+            "define-fun",
+            "indexOf/${indexOf4_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("subs", "String"),
+                SList("fromIndex", "Int")
+            ),
+            "Int",
+            SList(
+                "str.indexof",
+                "s",
+                "subs",
                 "fromIndex"
             )
         )
@@ -450,6 +494,26 @@ fun preconditionOfFunctions(name: String, args: List<String>): SExpression? {
                 )
             )
         }
+        "charAt/${charAt_sig.hashCode()}" -> {
+            val s = args[0]
+            val index = args[1]
+            SList(
+                "and",
+                SList(
+                    ">",
+                    SList(
+                        "str.len",
+                        s
+                    ),
+                    index
+                ),
+                SList(
+                    "<=",
+                    "0",
+                    s
+                )
+            )
+        }
         else -> null
     }
 }
@@ -462,7 +526,7 @@ inline fun postconditionOfFunctions(funcName: String, args: List<Value>, getName
         "next/${next_sig.hashCode()}" -> {
             val iteratorObject = args[0]
             val iteratorName = getName(iteratorObject)
-            TopLevel(
+            TopLevel( // TODO: fix the assertions
                 Atom(addReDeclarationOf(iteratorObject)), // work around, use `transformDefine()` to add re-declaration
                                                 // for consistency and modularity, so the product is a string like
                                                 // "(declare-const A B)", and can be directly inserted into the TopLevel
