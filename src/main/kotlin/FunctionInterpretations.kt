@@ -75,9 +75,9 @@ const val charAt_sig = "<java.lang.String: char charAt(int)>"
 //<java.lang.String: int compareToIgnoreCase(java.lang.String)>
 //<java.lang.String: boolean regionMatches(int,java.lang.String,int,int)>
 //<java.lang.String: boolean regionMatches(boolean,int,java.lang.String,int,int)>
-//<java.lang.String: boolean startsWith(java.lang.String,int)>
+const val startsWith0_sig = "<java.lang.String: boolean startsWith(java.lang.String,int)>"
 const val startsWith_sig = "<java.lang.String: boolean startsWith(java.lang.String)>"
-//<java.lang.String: boolean endsWith(java.lang.String)>
+const val endsWith_sig = "<java.lang.String: boolean endsWith(java.lang.String)>"
 //<java.lang.String: int hashCode()>
 const val indexOf1_sig = "<java.lang.String: int indexOf(int)>"
 const val indexOf2_sig = "<java.lang.String: int indexOf(int,int)>"
@@ -189,6 +189,65 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
             SList(
                 "str.prefixof",
                 "prefix",
+                "s"
+            )
+        )
+
+        funcs["startsWith/${startsWith0_sig.hashCode()}"] = SList(
+            "define-fun",
+            "startsWith/${startsWith0_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("prefix", "String"),
+                SList("toffset", "Int")
+            ),
+            "Bool",
+            SList(
+                "and",
+                SList(
+                    ">=",
+                    "toffset",
+                    "0"
+                ),
+                SList(
+                    ">=",
+                    SList(
+                        "str.len",
+                        "s"
+                    ),
+                    "toffset"
+                ),
+                SList(
+                    "str.prefixof",
+                    "prefix",
+                    SList(
+                        "str.substr",
+                        "s",
+                        "toffset",
+                        SList(
+                            "-",
+                            SList(
+                                "str.len",
+                                "s"
+                            ),
+                            "toffset"
+                        )
+                    )
+                )
+            )
+        )
+
+        funcs["endsWith/${endsWith_sig.hashCode()}"] = SList(
+            "define-fun",
+            "endsWith/${endsWith_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("suffix", "String")
+            ),
+            "Bool",
+            SList(
+                "str.suffixof",
+                "suffix",
                 "s"
             )
         )
