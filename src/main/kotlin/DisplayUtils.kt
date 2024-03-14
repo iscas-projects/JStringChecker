@@ -379,7 +379,14 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
 
         // second method after entry
         fun transformStmt(stmt: Stmt) = when (stmt) {
-            is JIdentityStmt -> transformDefine(stmt.rightOp.type, stmt.leftOp)
+            is IdentityStmt -> {
+                val res = transformDefine(stmt.rightOp.type, stmt.leftOp)
+                if (stmt.rightOp is ThisRef) // this object should not be null by definition
+                    post = "(assert (not (= ${transformName(stmt.leftOp)} ${coerce(NullConstant.v(), listOf(stmt.leftOp.type))})))"
+                if (stmt.rightOp is ParameterRef) // TODO: assume params are not null, but only as an option
+                    post += "\n(assert (not (= ${transformName(stmt.leftOp)} ${coerce(NullConstant.v(), listOf(stmt.leftOp.type))})))"
+                res
+            }
             is AssignStmt -> transformDefine(stmt.leftOp.type, stmt.leftOp, stmt.rightOp)
             is IfStmt -> ""
             is GotoStmt -> ""
