@@ -109,9 +109,10 @@ fun Slicer.smtExpand(): Pair<String, List<String>> {
             }
             if (valueToBeCoerced.type is NullType) { // default to cast the null's
                 val ty = typeClasses.first { it !is NullType }
+                val nullName = "null-${transformName(ty).replace("[( )]".toRegex(), "__")}"
                 // TODO: make sure null not equal to any concrete instance
-                placeholderDeclarations["null-${transformName(ty)}"] = ty
-                return "null-${transformName(ty)}"
+                placeholderDeclarations[nullName] = ty
+                return nullName
             }
 
             return transformValue(valueToBeCoerced)
