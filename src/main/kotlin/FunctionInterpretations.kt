@@ -87,8 +87,8 @@ const val indexOf2_sig = "<java.lang.String: int indexOf(int,int)>"
 //<java.lang.String: int lastIndexOfSupplementary(int,int)>
 const val indexOf3_sig = "<java.lang.String: int indexOf(java.lang.String)>"
 const val indexOf4_sig = "<java.lang.String: int indexOf(java.lang.String,int)>"
-//<java.lang.String: int indexOf(char[],int,int,java.lang.String,int)>
-//<java.lang.String: int indexOf(char[],int,int,char[],int,int,int)>
+const val indexOf5_sig = "<java.lang.String: int indexOf(int,int,int)>" // modified, for JDK21 seems to have different overloads
+const val indexOf6_sig = "<java.lang.String: int indexOf(java.lang.String,int,int)>"
 //<java.lang.String: int lastIndexOf(java.lang.String)>
 //<java.lang.String: int lastIndexOf(java.lang.String,int)>
 //<java.lang.String: int lastIndexOf(char[],int,int,java.lang.String,int)>
@@ -96,10 +96,10 @@ const val indexOf4_sig = "<java.lang.String: int indexOf(java.lang.String,int)>"
 const val substring1_sig = "<java.lang.String: java.lang.String substring(int)>"
 const val substring2_sig = "<java.lang.String: java.lang.String substring(int,int)>"
 //<java.lang.String: java.lang.CharSequence subSequence(int,int)>
-//<java.lang.String: java.lang.String concat(java.lang.String)>
+const val concat_sig = "<java.lang.String: java.lang.String concat(java.lang.String)>"
 //<java.lang.String: java.lang.String replace(char,char)>
 //<java.lang.String: boolean matches(java.lang.String)>
-//<java.lang.String: boolean contains(java.lang.CharSequence)>
+const val contains_sig = "<java.lang.String: boolean contains(java.lang.CharSequence)>"
 //<java.lang.String: java.lang.String replaceFirst(java.lang.String,java.lang.String)>
 //<java.lang.String: java.lang.String replaceAll(java.lang.String,java.lang.String)>
 //<java.lang.String: java.lang.String replace(java.lang.CharSequence,java.lang.CharSequence)>
@@ -141,6 +141,7 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
     }
 
     fun listOfStringApis(): Map<String, SExpression> {
+        // also refer to https://github.com/jiaxy/jconcolic/blob/master/jconcolic-core/src/main/java/edu/whu/jconcolic/solver/SMT2Visitor.java#L392
         val funcs = mutableMapOf<String, SExpression>()
 
         funcs["length/${length_sig.hashCode()}"] = SList(
@@ -321,6 +322,100 @@ fun predefineFunctions(functions: MutableMap<String, Pair<List<Any>, Any>>): Lis
                 "s",
                 "subs",
                 "fromIndex"
+            )
+        )
+
+        funcs["indexOf/${indexOf5_sig.hashCode()}"] = SList(
+            "define-fun",
+            "indexOf/${indexOf5_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("c", "int"),
+                SList("beginIndex", "Int"),
+                SList("endIndex", "Int")
+            ),
+            "Int",
+            SList(
+                "+",
+                "beginIndex",
+                SList(
+                    "str.indexof",
+                    SList(
+                        "str.substr",
+                        "s",
+                        "beginIndex",
+                        SList(
+                            "-",
+                            "endIndex",
+                            "beginIndex"
+                        )
+                    ),
+                    SList(
+                        "str.from_code",
+                        "c"
+                    ),
+                    "0"
+                )
+            )
+        )
+
+        funcs["indexOf/${indexOf6_sig.hashCode()}"] = SList(
+            "define-fun",
+            "indexOf/${indexOf6_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("subs", "String"),
+                SList("beginIndex", "Int"),
+                SList("endIndex", "Int")
+            ),
+            "Int",
+            SList(
+                "+",
+                "beginIndex",
+                SList(
+                    "str.indexof",
+                    SList(
+                        "str.substr",
+                        "s",
+                        "beginIndex",
+                        SList(
+                            "-",
+                            "endIndex",
+                            "beginIndex"
+                        )
+                    ),
+                    "subs",
+                    "0"
+                )
+            )
+        )
+
+        funcs["contains/${contains_sig.hashCode()}"] = SList(
+            "define-fun",
+            "contains/${contains_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("subs", "String")
+            ),
+            "Bool",
+            SList(
+                "str.contains",
+                "s",
+                "subs"
+            )
+        )
+        funcs["concat/${concat_sig.hashCode()}"] = SList(
+            "define-fun",
+            "concat/${concat_sig.hashCode()}",
+            SList(
+                SList("s", "String"),
+                SList("next", "String")
+            ),
+            "String",
+            SList(
+                "str.++",
+                "s",
+                "next"
             )
         )
 
@@ -545,6 +640,32 @@ fun preconditionOfFunctions(name: String, args: List<String>): SExpression? {
             val s = args[0]
             val begin = args[1]
             val end = args[2]
+            SList(
+                "and",
+                SList(
+                    ">=",
+                    begin,
+                    "0"
+                ),
+                SList(
+                    ">=",
+                    SList(
+                        "str.len",
+                        s
+                    ),
+                    end
+                ),
+                SList(
+                    ">=",
+                    end,
+                    begin
+                )
+            )
+        }
+        "indexOf/${indexOf5_sig.hashCode()}", "indexOf/${indexOf6_sig.hashCode()}" -> {
+            val s = args[0]
+            val begin = args[2]
+            val end = args[3]
             SList(
                 "and",
                 SList(
